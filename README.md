@@ -158,6 +158,17 @@ make up
 # Open http://localhost:5173
 ```
 
+### Web Frontend
+
+The repo includes a minimal browser frontend in `clients/web` that can submit repository analysis requests to the API.
+
+```bash
+# Run only the frontend (API must already be running)
+docker-compose up -d web
+
+# Open http://localhost:5173
+```
+
 ### VSCode Extension
 
 1. Install the extension from `clients/vscode/`

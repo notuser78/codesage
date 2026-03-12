@@ -9,24 +9,9 @@
   <body>
     <main class="container">
       <h1>CodeSage Web</h1>
-      <p class="subtitle">Login, create a repository, and trigger analysis from your browser.</p>
-
-      <form id="login-form" class="card">
-        <h2>1) Login</h2>
-        <label for="email">Email</label>
-        <input id="email" type="email" value="demo@codesage.local" required />
-
-        <label for="password">Password</label>
-        <input id="password" type="password" value="password123" required />
-
-        <button type="submit">Get Token</button>
-      </form>
+      <p class="subtitle">Analyze repository metadata from your browser.</p>
 
       <form id="analyze-form" class="card">
-        <h2>2) Create + Analyze Repository</h2>
-        <label for="token">Bearer Token</label>
-        <input id="token" type="text" placeholder="Paste access token" required />
-
         <label for="repo-url">Repository URL</label>
         <input id="repo-url" type="url" placeholder="https://github.com/example/repo" required />
 
