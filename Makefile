@@ -135,7 +135,7 @@ k8s-logs-worker:
 
 # Model Training
 train:
-	docker-compose -f docker-compose.train.yml up --build
+	python training/pipeline.py --config training/configs/sft_config.yaml --mode sft
 
 train-sft:
 	python training/pipeline.py --config training/configs/sft_config.yaml --mode sft
@@ -145,15 +145,14 @@ train-rlhf:
 
 # Benchmarking
 benchmark:
-	python scripts/benchmark.py --output results/benchmark.json
+	bash scripts/benchmark.sh
 
 benchmark-api:
 	locust -f tests/locustfile.py --host=http://localhost:8000
 
 # Development
 dev-setup:
-	pip install -r requirements-dev.txt
-	pre-commit install
+	pip install -r services/api/requirements.txt -r services/analysis/requirements.txt -r services/llm/requirements.txt -r services/knowledge/requirements.txt
 
 check-services:
 	@echo "Checking service health..."

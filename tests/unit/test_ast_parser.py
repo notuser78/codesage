@@ -4,6 +4,8 @@ Unit tests for AST parser
 
 import pytest
 
+pytest.importorskip("tree_sitter")
+
 from engine.ast_parser import ASTParser, get_parser
 
 

@@ -1,0 +1,12 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: codesage-api
+    url: http://api:8000
+    routes:
+      - name: codesage-api-route
+        paths:
+          - /api
+          - /docs
+          - /health

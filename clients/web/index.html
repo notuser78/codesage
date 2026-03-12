@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeSage Web</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>CodeSage Web</h1>
+      <p class="subtitle">Analyze repository metadata from your browser.</p>
+
+      <form id="analyze-form" class="card">
+        <label for="repo-url">Repository URL</label>
+        <input id="repo-url" type="url" placeholder="https://github.com/example/repo" required />
+
+        <label for="branch">Branch</label>
+        <input id="branch" type="text" value="main" required />
+
+        <button type="submit">Start Analysis</button>
+      </form>
+
+      <pre id="output" class="card output">Waiting for input...</pre>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
