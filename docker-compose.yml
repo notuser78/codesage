@@ -212,6 +212,19 @@ services:
     networks:
       - codesage-network
 
+
+  web:
+    build:
+      context: ./clients/web
+      dockerfile: Dockerfile
+    container_name: codesage-web
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - codesage-network
+
   # Monitoring
   prometheus:
     image: prom/prometheus:v2.50.0
