@@ -4,6 +4,8 @@ Unit tests for security scanner
 
 import pytest
 
+pytest.importorskip("tree_sitter")
+
 from engine.security_scanner import SecurityScanner, get_scanner
 
 
