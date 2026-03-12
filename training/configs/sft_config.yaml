@@ -1,0 +1,103 @@
+# Supervised Fine-Tuning Configuration
+
+model:
+  base_model: "codellama/CodeLlama-7b-hf"
+  model_revision: "main"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  
+  # Quantization settings (optional)
+  quantization:
+    enabled: true
+    method: "4bit"  # 4bit or 8bit
+    compute_dtype: "bfloat16"
+    quant_type: "nf4"
+    use_nested_quant: true
+
+data:
+  # Dataset sources
+  sources:
+    - name: "code_instructions"
+      path: "datasets/code_instructions.jsonl"
+      weight: 0.4
+    - name: "security_fixes"
+      path: "datasets/security_fixes.jsonl"
+      weight: 0.3
+    - name: "code_optimization"
+      path: "datasets/code_optimization.jsonl"
+      weight: 0.3
+  
+  # Data preprocessing
+  max_seq_length: 4096
+  padding: "max_length"
+  truncation: true
+  
+  # Data augmentation
+  augmentation:
+    enabled: true
+    techniques:
+      - "random_deletion"
+      - "synonym_replacement"
+    probability: 0.1
+
+training:
+  output_dir: "./output/sft"
+  
+  # Training hyperparameters
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  weight_decay: 0.001
+  warmup_ratio: 0.03
+  lr_scheduler_type: "cosine"
+  
+  # Optimization
+  optim: "paged_adamw_8bit"
+  max_grad_norm: 0.3
+  
+  # Logging & Evaluation
+  logging_steps: 10
+  eval_steps: 100
+  save_steps: 500
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  
+  # PEFT / LoRA settings
+  peft:
+    enabled: true
+    r: 64
+    lora_alpha: 16
+    lora_dropout: 0.1
+    bias: "none"
+    task_type: "CAUSAL_LM"
+    target_modules:
+      - "q_proj"
+      - "k_proj"
+      - "v_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+  
+  # Mixed precision training
+  fp16: false
+  bf16: true
+  
+  # Gradient checkpointing
+  gradient_checkpointing: true
+  
+  # Group sequences for efficiency
+  group_by_length: true
+  
+  # Weights & Biases
+  wandb:
+    enabled: true
+    project: "codesage-training"
+    entity: null
+    tags:
+      - "sft"
+      - "codellama-7b"

@@ -1,0 +1,93 @@
+# RLHF Training Configuration
+
+model:
+  # Base model from SFT stage
+  sft_model_path: null  # Will be provided via command line
+  
+  # Reward model
+  reward_model:
+    base_model: "codellama/CodeLlama-7b-hf"
+    num_labels: 1  # Regression for reward modeling
+  
+  # Reference model (frozen)
+  use_reference_model: true
+  reference_model_path: null
+
+data:
+  # Preference dataset
+  preference_data:
+    path: "datasets/preference_data.jsonl"
+    format: "pairwise"  # pairwise or pointwise
+  
+  # Maximum sequence length
+  max_seq_length: 2048
+  
+  # Data splitting
+  train_test_split: 0.1
+
+training:
+  output_dir: "./output/rlhf"
+  
+  # RL algorithm
+  algorithm: "ppo"  # ppo, dpo, or rlhf
+  
+  # PPO specific settings
+  ppo:
+    learning_rate: 1.0e-5
+    batch_size: 4
+    mini_batch_size: 1
+    gradient_accumulation_steps: 4
+    ppo_epochs: 4
+    
+    # KL penalty
+    init_kl_coef: 0.2
+    target_kl: 0.1
+    adap_kl_ctrl: true
+    
+    # Reward clipping
+    cliprange: 0.2
+    cliprange_value: 0.2
+    
+    # Value function
+    vf_coef: 0.1
+    
+    # Gamma and lambda for GAE
+    gamma: 0.99
+    lam: 0.95
+  
+  # Reward model training
+  reward_model:
+    learning_rate: 1.0e-5
+    num_train_epochs: 1
+    per_device_train_batch_size: 4
+    gradient_accumulation_steps: 4
+  
+  # Generation settings during RL
+  generation:
+    max_new_tokens: 512
+    temperature: 0.7
+    top_p: 0.9
+    do_sample: true
+    pad_token_id: 0
+    eos_token_id: 2
+  
+  # Logging & Checkpointing
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 50
+  
+  # Weights & Biases
+  wandb:
+    enabled: true
+    project: "codesage-training"
+    entity: null
+    tags:
+      - "rlhf"
+      - "ppo"
+      - "codellama-7b"
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 5
+    threshold: 0.01

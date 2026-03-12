@@ -1,0 +1,234 @@
+{
+  "name": "codesage",
+  "displayName": "CodeSage",
+  "description": "AI-powered code analysis and security scanning",
+  "version": "1.0.0",
+  "publisher": "codesage",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Machine Learning",
+    "Security"
+  ],
+  "keywords": [
+    "code analysis",
+    "security",
+    "vulnerabilities",
+    "ai",
+    "static analysis"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:java",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codesage.analyzeFile",
+        "title": "Analyze Current File",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.analyzeSelection",
+        "title": "Analyze Selection",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.analyzeWorkspace",
+        "title": "Analyze Workspace",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.showResults",
+        "title": "Show Analysis Results",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.configure",
+        "title": "Configure",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.connect",
+        "title": "Connect to Server",
+        "category": "CodeSage"
+      },
+      {
+        "command": "codesage.disconnect",
+        "title": "Disconnect",
+        "category": "CodeSage"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "codesage.analyzeSelection",
+          "when": "editorHasSelection",
+          "group": "codesage@1"
+        },
+        {
+          "command": "codesage.analyzeFile",
+          "group": "codesage@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "codesage.analyzeFile",
+          "when": "explorerResourceIsFile",
+          "group": "codesage@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "codesage.analyzeFile"
+        },
+        {
+          "command": "codesage.analyzeSelection"
+        },
+        {
+          "command": "codesage.analyzeWorkspace"
+        },
+        {
+          "command": "codesage.showResults"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "codesageResults",
+          "name": "CodeSage Analysis",
+          "when": "codesage:connected"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codesage",
+          "title": "CodeSage",
+          "icon": "$(shield)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeSage",
+      "properties": {
+        "codesage.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "CodeSage server URL"
+        },
+        "codesage.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for authentication"
+        },
+        "codesage.enableRealTimeAnalysis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time analysis as you type"
+        },
+        "codesage.analysisDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay in ms before triggering analysis"
+        },
+        "codesage.enableDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show visual decorations for findings"
+        },
+        "codesage.analysisTypes": {
+          "type": "array",
+          "default": ["security", "performance"],
+          "description": "Types of analysis to run",
+          "items": {
+            "type": "string",
+            "enum": ["security", "performance", "quality", "taint"]
+          }
+        },
+        "codesage.severityThreshold": {
+          "type": "string",
+          "default": "low",
+          "description": "Minimum severity level to report",
+          "enum": ["info", "low", "medium", "high", "critical"]
+        },
+        "codesage.useSSL": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use SSL/TLS for connection"
+        }
+      }
+    },
+    "colors": [
+      {
+        "id": "codesage.critical",
+        "description": "Color for critical severity findings",
+        "defaults": {
+          "dark": "#FF0000",
+          "light": "#FF0000",
+          "highContrast": "#FF0000"
+        }
+      },
+      {
+        "id": "codesage.high",
+        "description": "Color for high severity findings",
+        "defaults": {
+          "dark": "#FF6B6B",
+          "light": "#CC0000",
+          "highContrast": "#FF6B6B"
+        }
+      },
+      {
+        "id": "codesage.medium",
+        "description": "Color for medium severity findings",
+        "defaults": {
+          "dark": "#FFA500",
+          "light": "#CC8400",
+          "highContrast": "#FFA500"
+        }
+      },
+      {
+        "id": "codesage.low",
+        "description": "Color for low severity findings",
+        "defaults": {
+          "dark": "#FFD93D",
+          "light": "#CCAE00",
+          "highContrast": "#FFD93D"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0"
+  },
+  "dependencies": {
+    "ws": "^8.16.0",
+    "axios": "^1.6.2"
+  }
+}

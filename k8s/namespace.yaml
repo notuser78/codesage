@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: codesage
+  labels:
+    name: codesage
+    app.kubernetes.io/name: codesage
+    app.kubernetes.io/component: namespace
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: codesage-quota
+  namespace: codesage
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 64Gi
+    limits.cpu: "40"
+    limits.memory: 128Gi
+    persistentvolumeclaims: "20"
+    services: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: codesage-limits
+  namespace: codesage
+spec:
+  limits:
+    - default:
+        cpu: "1"
+        memory: 2Gi
+      defaultRequest:
+        cpu: 100m
+        memory: 256Mi
+      max:
+        cpu: "8"
+        memory: 32Gi
+      min:
+        cpu: 50m
+        memory: 128Mi
+      type: Container
