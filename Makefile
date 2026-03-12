@@ -1,3 +1,5 @@
+COMPOSE ?= $(shell if command -v docker-compose >/dev/null 2>&1; then echo docker-compose; elif command -v docker >/dev/null 2>&1; then echo "docker compose"; else echo docker-compose; fi)
+
 .PHONY: help build up down logs shell test lint format clean deploy k8s-deploy train benchmark
 
 # Default target
@@ -5,7 +7,7 @@ help:
 	@echo "CodeSage Platform - Available Commands:"
 	@echo ""
 	@echo "  make build          - Build all Docker images"
-	@echo "  make up             - Start all services with docker-compose"
+	@echo "  make up             - Start all services with $(COMPOSE)"
 	@echo "  make down           - Stop all services"
 	@echo "  make logs           - View logs from all services"
 	@echo "  make shell-api      - Open shell in API container"
@@ -24,45 +26,45 @@ help:
 
 # Docker Compose Commands
 build:
-	docker-compose build
+	$(COMPOSE) build
 
 up:
-	docker-compose up -d
+	$(COMPOSE) up -d
 
 down:
-	docker-compose down
+	$(COMPOSE) down
 
 logs:
-	docker-compose logs -f
+	$(COMPOSE) logs -f
 
 logs-api:
-	docker-compose logs -f api
+	$(COMPOSE) logs -f api
 
 logs-worker:
-	docker-compose logs -f worker
+	$(COMPOSE) logs -f worker
 
 logs-llm:
-	docker-compose logs -f llm
+	$(COMPOSE) logs -f llm
 
 # Shell Access
 shell-api:
-	docker-compose exec api /bin/sh
+	$(COMPOSE) exec api /bin/sh
 
 shell-worker:
-	docker-compose exec worker /bin/sh
+	$(COMPOSE) exec worker /bin/sh
 
 shell-llm:
-	docker-compose exec llm /bin/sh
+	$(COMPOSE) exec llm /bin/sh
 
 shell-knowledge:
-	docker-compose exec knowledge /bin/sh
+	$(COMPOSE) exec knowledge /bin/sh
 
 # Database
 migrate:
-	docker-compose exec api alembic upgrade head
+	$(COMPOSE) exec api alembic upgrade head
 
 makemigrations:
-	docker-compose exec api alembic revision --autogenerate -m "$(message)"
+	$(COMPOSE) exec api alembic revision --autogenerate -m "$(message)"
 
 # Testing
 test:
@@ -97,7 +99,7 @@ security-scan:
 
 # Cleaning
 clean:
-	docker-compose down -v --remove-orphans
+	$(COMPOSE) down -v --remove-orphans
 	docker system prune -f
 	docker volume prune -f
 
@@ -162,10 +164,10 @@ check-services:
 
 # Data Management
 backup-db:
-	docker-compose exec postgres pg_dump -U codesage codesage > backup_$(shell date +%Y%m%d_%H%M%S).sql
+	$(COMPOSE) exec postgres pg_dump -U codesage codesage > backup_$(shell date +%Y%m%d_%H%M%S).sql
 
 restore-db:
-	docker-compose exec -T postgres psql -U codesage codesage < $(file)
+	$(COMPOSE) exec -T postgres psql -U codesage codesage < $(file)
 
 # Utilities
 wait-for-services:

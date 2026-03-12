@@ -22,7 +22,7 @@ from core.database import close_db, init_db
 from middleware.auth import AuthMiddleware
 from middleware.logging import LoggingMiddleware
 from middleware.rate_limit import RateLimitMiddleware
-from routers import analysis, health, repository
+from routers import analysis, auth, health, repository
 
 logger = structlog.get_logger()
 tracer = trace.get_tracer(__name__)
@@ -72,6 +72,7 @@ FastAPIInstrumentor.instrument_app(app)
 
 # Include routers
 app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
 app.include_router(repository.router, prefix="/api/v1", tags=["Repositories"])
 app.include_router(analysis.router, prefix="/api/v1", tags=["Analysis"])
 

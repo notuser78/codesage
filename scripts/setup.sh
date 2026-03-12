@@ -30,13 +30,17 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    print_error "Docker Compose is not installed. Please install Docker Compose first."
+# Detect docker compose command
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif docker compose version > /dev/null 2>&1; then
+    COMPOSE_CMD="docker compose"
+else
+    print_error "Docker Compose is not installed. Please install docker-compose or docker compose plugin first."
     exit 1
 fi
 
-print_status "Docker and Docker Compose are installed"
+print_status "Docker and Docker Compose are installed ($COMPOSE_CMD)"
 
 # Check Docker version
 DOCKER_VERSION=$(docker --version | cut -d ' ' -f3 | cut -d ',' -f1)
@@ -69,15 +73,15 @@ fi
 
 # Pull base images
 print_status "Pulling base Docker images..."
-docker-compose pull
+${COMPOSE_CMD} pull
 
 # Build services
 print_status "Building Docker images..."
-docker-compose build
+${COMPOSE_CMD} build
 
 # Start infrastructure services first
 print_status "Starting infrastructure services..."
-docker-compose up -d postgres redis neo4j weaviate rabbitmq
+${COMPOSE_CMD} up -d postgres redis neo4j weaviate rabbitmq
 
 # Wait for services to be ready
 print_status "Waiting for services to be ready..."
@@ -85,7 +89,7 @@ sleep 10
 
 # Check PostgreSQL
 print_status "Checking PostgreSQL..."
-until docker-compose exec -T postgres pg_isready -U codesage > /dev/null 2>&1; do
+until ${COMPOSE_CMD} exec -T postgres pg_isready -U codesage > /dev/null 2>&1; do
     print_warning "Waiting for PostgreSQL..."
     sleep 2
 done
@@ -93,7 +97,7 @@ print_status "PostgreSQL is ready"
 
 # Check Redis
 print_status "Checking Redis..."
-until docker-compose exec -T redis redis-cli ping > /dev/null 2>&1; do
+until ${COMPOSE_CMD} exec -T redis redis-cli ping > /dev/null 2>&1; do
     print_warning "Waiting for Redis..."
     sleep 2
 done
@@ -117,11 +121,11 @@ print_status "Weaviate is ready"
 
 # Run database migrations (if using Alembic)
 # print_status "Running database migrations..."
-# docker-compose run --rm api alembic upgrade head
+# ${COMPOSE_CMD} run --rm api alembic upgrade head
 
 # Start all services
 print_status "Starting all services..."
-docker-compose up -d
+${COMPOSE_CMD} up -d
 
 # Wait for services to be ready
 print_status "Waiting for application services..."
@@ -154,9 +158,9 @@ echo "  Weaviate:        http://localhost:8080"
 echo "  Kong Admin:      http://localhost:8009"
 echo ""
 echo "Useful commands:"
-echo "  View logs:       docker-compose logs -f"
-echo "  Stop services:   docker-compose down"
-echo "  Restart:         docker-compose restart"
+echo "  View logs:       ${COMPOSE_CMD} logs -f"
+echo "  Stop services:   ${COMPOSE_CMD} down"
+echo "  Restart:         ${COMPOSE_CMD} restart"
 echo ""
 echo "=========================================="
 print_status "Setup complete!"

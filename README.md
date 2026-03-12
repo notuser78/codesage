@@ -131,14 +131,31 @@ make check-services
 
 ```bash
 # Submit a repository for analysis
-curl -X POST http://localhost:8000/api/v1/repositories/analyze \
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "url": "https://github.com/example/repo",
-    "branch": "main",
-    "analysis_types": ["security", "performance", "quality"]
-  }'
+  -d '{"email":"demo@codesage.local","password":"password123"}' | jq -r .access_token)
+
+REPO_ID=$(curl -s -X POST http://localhost:8000/api/v1/repositories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{"url":"https://github.com/example/repo","branch":"main"}' | jq -r .id)
+
+curl -X POST http://localhost:8000/api/v1/repositories/${REPO_ID}/analyze \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{"analysis_types": ["security", "performance", "quality"]}'
+```
+
+### Web Frontend
+
+The repo includes a minimal browser frontend in `clients/web` with a built-in login flow (`/api/v1/auth/login`) and repository analysis trigger.
+
+```bash
+# Run only the frontend (API must already be running)
+make up
+# or: docker compose up -d web
+
+# Open http://localhost:5173
 ```
 
 ### Web Frontend

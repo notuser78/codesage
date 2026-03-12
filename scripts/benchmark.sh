@@ -10,11 +10,17 @@ API_URL=${API_URL:-"http://localhost:8000"}
 DURATION=${DURATION:-60}
 CONCURRENCY=${CONCURRENCY:-10}
 OUTPUT_DIR=${OUTPUT_DIR:-"./benchmark_results"}
+AUTH_TOKEN=${AUTH_TOKEN:-""}
 
 echo "API URL: $API_URL"
 echo "Duration: $DURATION seconds"
 echo "Concurrency: $CONCURRENCY"
 echo "Output directory: $OUTPUT_DIR"
+if [ -n "$AUTH_TOKEN" ]; then
+    echo "Auth token: provided"
+else
+    echo "Auth token: not provided (protected endpoints may return 401)"
+fi
 
 # Colors
 RED='\033[0;31m'
@@ -51,8 +57,14 @@ print_status "Running benchmarks..."
 
 # API latency test
 print_status "Testing API latency..."
-curl -o $OUTPUT_DIR/latency.json -s -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-    "$API_URL/api/v1/languages" > $OUTPUT_DIR/latency.txt
+if [ -n "$AUTH_TOKEN" ]; then
+    curl -o $OUTPUT_DIR/latency.json -s -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+        -H "Authorization: Bearer $AUTH_TOKEN" \
+        "$API_URL/api/v1/languages" > $OUTPUT_DIR/latency.txt
+else
+    curl -o $OUTPUT_DIR/latency.json -s -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+        "$API_URL/api/v1/languages" > $OUTPUT_DIR/latency.txt
+fi
 
 # Load test with ab (Apache Bench) if available
 if command -v ab &> /dev/null; then
@@ -77,12 +89,13 @@ else
     print_warning "Locust not installed, skipping advanced load test"
 fi
 
-# Database performance test
-print_status "Testing database performance..."
-python3 << EOF
-import time
-import requests
+# Endpoint performance test
+print_status "Testing endpoint performance..."
+python3 << EOF_PY
 import json
+import time
+
+import requests
 
 results = {
     "endpoint_tests": [],
@@ -95,17 +108,19 @@ endpoints = [
     ("rules", "/api/v1/rules"),
 ]
 
+headers = {"Authorization": "Bearer $AUTH_TOKEN"} if "$AUTH_TOKEN" else {}
+
 for name, path in endpoints:
     times = []
     for _ in range(10):
         start = time.time()
         try:
-            response = requests.get("$API_URL" + path)
-            elapsed = time.time() - start
-            times.append(elapsed)
+            response = requests.get("$API_URL" + path, headers=headers)
+            if response.status_code < 500:
+                times.append(time.time() - start)
         except Exception as e:
             print(f"Error testing {name}: {e}")
-    
+
     if times:
         results["endpoint_tests"].append({
             "name": name,
@@ -120,11 +135,11 @@ with open("$OUTPUT_DIR/endpoint_latency.json", "w") as f:
     json.dump(results, f, indent=2)
 
 print("Endpoint latency results saved")
-EOF
+EOF_PY
 
 # Generate report
 print_status "Generating benchmark report..."
-cat > $OUTPUT_DIR/report.md << 'EOF'
+cat > $OUTPUT_DIR/report.md << 'EOF_REPORT'
 # CodeSage Platform Benchmark Report
 
 ## Summary
@@ -155,7 +170,7 @@ Based on benchmark results:
 2. Scale workers if throughput is below requirements
 3. Optimize database queries if latency is high
 
-EOF
+EOF_REPORT
 
 echo ""
 echo "=========================================="
