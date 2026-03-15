@@ -4,7 +4,7 @@ from typing import List
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from middleware.auth import create_access_token, create_refresh_token
 
@@ -26,7 +26,7 @@ class TokenResponse(BaseModel):
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    roles: List[str] = ["user"]
+    roles: List[str] = Field(default_factory=lambda: ["user"])
 
 
 @router.post("/auth/login", response_model=TokenResponse)

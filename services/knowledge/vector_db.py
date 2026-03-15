@@ -16,12 +16,12 @@ logger = structlog.get_logger()
 
 class VectorDB:
     """Weaviate vector database manager"""
-    
+
     def __init__(self):
         self.url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
         self.client = None
         self.collection_name = "CodeSnippet"
-    
+
     async def connect(self):
         """Connect to Weaviate"""
         try:
@@ -33,26 +33,26 @@ class VectorDB:
                 grpc_port=50051,
                 grpc_secure=False,
             )
-            
+
             # Test connection
             if not self.client.is_ready():
                 raise ConnectionError("Weaviate is not ready")
-            
+
             logger.info("Connected to Weaviate")
-            
+
             # Setup schema
             await self._setup_schema()
-            
+
         except Exception as e:
             logger.error(f"Failed to connect to Weaviate: {e}")
             raise
-    
+
     async def close(self):
         """Close Weaviate connection"""
         if self.client:
             self.client.close()
             logger.info("Weaviate connection closed")
-    
+
     async def is_connected(self) -> bool:
         """Check if connected to Weaviate"""
         if not self.client:
@@ -61,7 +61,7 @@ class VectorDB:
             return self.client.is_ready()
         except Exception:
             return False
-    
+
     async def _setup_schema(self):
         """Setup Weaviate schema"""
         try:
@@ -86,7 +86,7 @@ class VectorDB:
         except Exception as e:
             logger.error(f"Failed to setup schema: {e}")
             raise
-    
+
     async def index_code(
         self,
         content: str,
@@ -104,10 +104,10 @@ class VectorDB:
         doc_id = hashlib.md5(
             f"{repo_id}:{file_path}:{function_name or start_line}".encode()
         ).hexdigest()
-        
+
         try:
             collection = self.client.collections.get(self.collection_name)
-            
+
             # Check if already exists
             try:
                 existing = collection.query.fetch_object_by_id(doc_id)
@@ -116,7 +116,7 @@ class VectorDB:
                     collection.data.delete_by_id(doc_id)
             except Exception:
                 pass
-            
+
             # Insert new document
             obj = {
                 "content": content,
@@ -128,19 +128,19 @@ class VectorDB:
                 "end_line": end_line or 0,
                 "snippet_type": snippet_type,
             }
-            
+
             collection.data.insert(
                 properties=obj,
                 vector=embedding,
                 uuid=doc_id,
             )
-            
+
             return doc_id
-            
+
         except Exception as e:
             logger.error(f"Failed to index code: {e}")
             raise
-    
+
     async def search(
         self,
         query: str,
@@ -153,7 +153,7 @@ class VectorDB:
         # to generate embeddings
         logger.warning("Vector search requires embeddings - implement with LLM service")
         return []
-    
+
     async def find_similar(
         self,
         code: str,
@@ -164,13 +164,14 @@ class VectorDB:
         """Find code similar to the provided embedding"""
         try:
             collection = self.client.collections.get(self.collection_name)
-            
+
             # Build filter
             filter_clause = None
             if language:
                 from weaviate.classes.query import Filter
+
                 filter_clause = Filter.by_property("language").equal(language)
-            
+
             # Perform vector search
             results = collection.query.near_vector(
                 near_vector=embedding,
@@ -178,57 +179,60 @@ class VectorDB:
                 filters=filter_clause,
                 return_metadata=["distance"],
             )
-            
+
             similar = []
             for obj in results.objects:
-                similar.append({
-                    "id": str(obj.uuid),
-                    "content": obj.properties.get("content"),
-                    "language": obj.properties.get("language"),
-                    "file_path": obj.properties.get("file_path"),
-                    "function_name": obj.properties.get("function_name"),
-                    "score": 1.0 - (obj.metadata.distance or 0),
-                })
-            
+                similar.append(
+                    {
+                        "id": str(obj.uuid),
+                        "content": obj.properties.get("content"),
+                        "language": obj.properties.get("language"),
+                        "file_path": obj.properties.get("file_path"),
+                        "function_name": obj.properties.get("function_name"),
+                        "score": 1.0 - (obj.metadata.distance or 0),
+                    }
+                )
+
             return similar
-            
+
         except Exception as e:
             logger.error(f"Similar code search failed: {e}")
             return []
-    
+
     async def delete_repo(self, repo_id: str):
         """Delete all vectors for a repository"""
         try:
             collection = self.client.collections.get(self.collection_name)
-            
+
             from weaviate.classes.query import Filter
+
             filter_clause = Filter.by_property("repo_id").equal(repo_id)
-            
+
             # Delete all matching objects
             collection.data.delete_many(
                 where=filter_clause,
             )
-            
+
             logger.info(f"Deleted vectors for repo {repo_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to delete repo vectors: {e}")
             raise
-    
+
     async def get_stats(self) -> Dict:
         """Get database statistics"""
         try:
             collection = self.client.collections.get(self.collection_name)
-            
+
             # Get count
             agg = collection.aggregate.over_all()
             total_count = agg.total_count
-            
+
             return {
                 "total_vectors": total_count,
                 "collection": self.collection_name,
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get stats: {e}")
             return {"total_vectors": 0, "error": str(e)}

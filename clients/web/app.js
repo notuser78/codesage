@@ -9,10 +9,11 @@ form.addEventListener("submit", async (event) => {
   const url = document.getElementById("repo-url").value;
   const branch = document.getElementById("branch").value;
 
-  output.textContent = "Submitting analysis request...";
+  output.textContent = "Creating repository and submitting analysis request...";
 
   try {
-    const response = await fetch(`${API_URL}/api/v1/repositories/analyze`, {
+    // Step 1: Register repository
+    const createRepoRes = await fetch(`${API_URL}/api/v1/repositories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -20,18 +21,35 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         url,
         branch,
+      }),
+    });
+
+    const createRepoPayload = await createRepoRes.json();
+
+    if (!createRepoRes.ok) {
+      output.textContent = `Create repo failed (${createRepoRes.status}): ${JSON.stringify(createRepoPayload, null, 2)}`;
+      return;
+    }
+
+    // Step 2: Trigger analysis for the new repository
+    const analyzeRes = await fetch(`${API_URL}/api/v1/repositories/${createRepoPayload.id}/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         analysis_types: ["security", "performance", "quality"],
       }),
     });
 
-    const payload = await response.json();
+    const analyzePayload = await analyzeRes.json();
 
-    if (!response.ok) {
-      output.textContent = `Request failed (${response.status}): ${JSON.stringify(payload, null, 2)}`;
+    if (!analyzeRes.ok) {
+      output.textContent = `Analysis request failed (${analyzeRes.status}): ${JSON.stringify(analyzePayload, null, 2)}`;
       return;
     }
 
-    output.textContent = JSON.stringify(payload, null, 2);
+    output.textContent = JSON.stringify({ repository: createRepoPayload, analysis: analyzePayload }, null, 2);
   } catch (error) {
     output.textContent = `Unable to reach API at ${API_URL}.\n\n${error}`;
   }

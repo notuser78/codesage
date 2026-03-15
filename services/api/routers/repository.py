@@ -7,12 +7,10 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from pydantic import BaseModel, HttpUrl
-from sqlalchemy import select
+from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.config import settings
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -37,7 +35,7 @@ class RepositoryResponse(BaseModel):
     status: str
     last_analyzed_at: Optional[str]
     created_at: str
-    
+
     class Config:
         from_attributes = True
 
@@ -50,7 +48,9 @@ class RepositoryList(BaseModel):
 
 
 class AnalysisRequest(BaseModel):
-    analysis_types: List[str] = ["security", "performance", "quality"]
+    analysis_types: List[str] = Field(
+        default_factory=lambda: ["security", "performance", "quality"]
+    )
     options: Optional[dict] = None
 
 
@@ -58,7 +58,9 @@ class AnalysisRequest(BaseModel):
 repositories = {}
 
 
-@router.post("/repositories", response_model=RepositoryResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/repositories", response_model=RepositoryResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_repository(
     repo: RepositoryCreate,
     background_tasks: BackgroundTasks,
@@ -67,15 +69,15 @@ async def create_repository(
     """Register a new repository for analysis"""
     import uuid
     from datetime import datetime
-    
+
     repo_id = uuid.uuid4()
-    
+
     # Extract repository name from URL if not provided
     name = repo.name
     if not name:
         url_path = str(repo.url).rstrip("/").split("/")[-1]
         name = url_path.replace(".git", "")
-    
+
     repo_data = {
         "id": repo_id,
         "url": str(repo.url),
@@ -86,16 +88,16 @@ async def create_repository(
         "last_analyzed_at": None,
         "created_at": datetime.utcnow().isoformat(),
     }
-    
+
     repositories[str(repo_id)] = repo_data
-    
+
     logger.info(
         "Repository registered",
         repo_id=str(repo_id),
         url=str(repo.url),
         name=name,
     )
-    
+
     return RepositoryResponse(**repo_data)
 
 
@@ -108,15 +110,15 @@ async def list_repositories(
 ):
     """List all registered repositories"""
     items = list(repositories.values())
-    
+
     if status:
         items = [r for r in items if r["status"] == status]
-    
+
     total = len(items)
     start = (page - 1) * page_size
     end = start + page_size
     paginated_items = items[start:end]
-    
+
     return RepositoryList(
         items=[RepositoryResponse(**item) for item in paginated_items],
         total=total,
@@ -154,17 +156,17 @@ async def analyze_repository(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repository not found",
         )
-    
+
     # Update status
     repo["status"] = "analyzing"
-    
+
     # This would trigger a Celery task in production
     logger.info(
         "Analysis requested",
         repo_id=str(repo_id),
         analysis_types=request.analysis_types,
     )
-    
+
     return {
         "message": "Analysis started",
         "repo_id": str(repo_id),
@@ -184,10 +186,10 @@ async def delete_repository(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repository not found",
         )
-    
+
     del repositories[str(repo_id)]
     logger.info("Repository deleted", repo_id=str(repo_id))
-    
+
     return None
 
 
@@ -203,7 +205,7 @@ async def get_analysis_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repository not found",
         )
-    
+
     return {
         "repo_id": str(repo_id),
         "status": repo["status"],

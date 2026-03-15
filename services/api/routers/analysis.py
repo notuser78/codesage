@@ -5,13 +5,11 @@ Analysis endpoints
 from typing import List, Optional
 from uuid import UUID
 
-import httpx
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from core.database import get_db
 
 logger = structlog.get_logger()
@@ -34,8 +32,8 @@ class AnalysisOptions(BaseModel):
 
 class AnalysisRequest(BaseModel):
     snippet: CodeSnippet
-    analysis_types: List[str] = ["security", "performance"]
-    options: AnalysisOptions = AnalysisOptions()
+    analysis_types: List[str] = Field(default_factory=lambda: ["security", "performance"])
+    options: AnalysisOptions = Field(default_factory=AnalysisOptions)
 
 
 class Finding(BaseModel):
@@ -76,7 +74,7 @@ class AnalysisResponse(BaseModel):
 
 class BatchAnalysisRequest(BaseModel):
     snippets: List[CodeSnippet]
-    analysis_types: List[str] = ["security", "performance"]
+    analysis_types: List[str] = Field(default_factory=lambda: ["security", "performance"])
 
 
 # Mock analysis results for demo
@@ -124,35 +122,32 @@ async def analyze_code(
     """Analyze a code snippet"""
     import uuid
     from datetime import datetime
-    
+
     analysis_id = uuid.uuid4()
     start_time = datetime.utcnow()
-    
+
     logger.info(
         "Analysis requested",
         analysis_id=str(analysis_id),
         language=request.snippet.language,
         analysis_types=request.analysis_types,
     )
-    
+
     # This would call the analysis service in production
     # For demo, return mock results
-    findings = [
-        Finding(**f) for f in mock_findings
-        if f["type"] in request.analysis_types
-    ]
-    
+    findings = [Finding(**f) for f in mock_findings if f["type"] in request.analysis_types]
+
     completed_at = datetime.utcnow()
     duration_ms = int((completed_at - start_time).total_seconds() * 1000)
-    
+
     # Calculate summary
     severity_counts = {"high": 0, "medium": 0, "low": 0, "info": 0}
     type_counts = {"security": 0, "performance": 0, "quality": 0}
-    
+
     for finding in findings:
         severity_counts[finding.severity] = severity_counts.get(finding.severity, 0) + 1
         type_counts[finding.type] = type_counts.get(finding.type, 0) + 1
-    
+
     return AnalysisResponse(
         id=analysis_id,
         status="completed",
@@ -183,25 +178,27 @@ async def analyze_batch(
     """Analyze multiple code snippets"""
     import uuid
     from datetime import datetime
-    
+
     batch_id = uuid.uuid4()
-    
+
     logger.info(
         "Batch analysis requested",
         batch_id=str(batch_id),
         snippet_count=len(request.snippets),
     )
-    
+
     results = []
     for snippet in request.snippets:
         # Mock analysis for each snippet
-        results.append({
-            "filename": snippet.filename,
-            "language": snippet.language,
-            "findings_count": 2,
-            "status": "completed",
-        })
-    
+        results.append(
+            {
+                "filename": snippet.filename,
+                "language": snippet.language,
+                "findings_count": 2,
+                "status": "completed",
+            }
+        )
+
     return {
         "batch_id": str(batch_id),
         "status": "completed",
@@ -235,16 +232,16 @@ async def get_analysis_findings(
     """Get findings for an analysis with filtering"""
     # Mock findings
     findings = mock_findings
-    
+
     if severity:
         findings = [f for f in findings if f["severity"] == severity]
     if finding_type:
         findings = [f for f in findings if f["type"] == finding_type]
-    
+
     total = len(findings)
     start = (page - 1) * page_size
     end = start + page_size
-    
+
     return {
         "analysis_id": str(analysis_id),
         "findings": findings[start:end],
@@ -261,7 +258,7 @@ async def regenerate_analysis(
 ):
     """Regenerate analysis with updated rules/models"""
     logger.info("Regenerating analysis", analysis_id=str(analysis_id))
-    
+
     return {
         "analysis_id": str(analysis_id),
         "status": "queued",
@@ -309,12 +306,12 @@ async def list_analysis_rules(
             "description": "Detects functions with high cyclomatic complexity",
         },
     ]
-    
+
     if category:
         rules = [r for r in rules if r["category"] == category]
     if language:
         rules = [r for r in rules if language in r["languages"] or "*" in r["languages"]]
-    
+
     return {"rules": rules, "total": len(rules)}
 
 

@@ -40,12 +40,12 @@ redis_pool: Optional[aioredis.Redis] = None
 async def init_db():
     """Initialize database connections"""
     global redis_pool
-    
+
     # Test database connection
     async with engine.begin() as conn:
         await conn.execute("SELECT 1")
     logger.info("Database connection established")
-    
+
     # Initialize Redis
     redis_pool = aioredis.from_url(
         settings.REDIS_URL,
@@ -58,11 +58,10 @@ async def init_db():
 
 async def close_db():
     """Close database connections"""
-    global redis_pool
-    
+
     await engine.dispose()
     logger.info("Database connection closed")
-    
+
     if redis_pool:
         await redis_pool.close()
         logger.info("Redis connection closed")
@@ -100,7 +99,7 @@ async def get_redis() -> aioredis.Redis:
 
 class DatabaseManager:
     """Database manager for advanced operations"""
-    
+
     @staticmethod
     async def health_check() -> dict:
         """Check database health"""
@@ -108,7 +107,7 @@ class DatabaseManager:
             "database": False,
             "redis": False,
         }
-        
+
         # Check PostgreSQL
         try:
             async with engine.connect() as conn:
@@ -116,7 +115,7 @@ class DatabaseManager:
             health["database"] = True
         except Exception as e:
             logger.error(f"Database health check failed: {e}")
-        
+
         # Check Redis
         try:
             if redis_pool:
@@ -124,9 +123,9 @@ class DatabaseManager:
                 health["redis"] = True
         except Exception as e:
             logger.error(f"Redis health check failed: {e}")
-        
+
         return health
-    
+
     @staticmethod
     async def execute_with_retry(func, max_retries: int = 3, delay: float = 1.0):
         """Execute database function with retry logic"""
@@ -137,4 +136,4 @@ class DatabaseManager:
                 if attempt == max_retries - 1:
                     raise
                 logger.warning(f"Database operation failed (attempt {attempt + 1}): {e}")
-                await asyncio.sleep(delay * (2 ** attempt))
+                await asyncio.sleep(delay * (2**attempt))

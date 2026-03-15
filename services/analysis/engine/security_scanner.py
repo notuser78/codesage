@@ -20,6 +20,7 @@ logger = structlog.get_logger()
 @dataclass
 class SecurityFinding:
     """A security vulnerability finding"""
+
     rule_id: str
     rule_name: str
     severity: str  # critical, high, medium, low, info
@@ -40,6 +41,7 @@ class SecurityFinding:
 @dataclass
 class ScanResult:
     """Result of a security scan"""
+
     findings: List[SecurityFinding] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
     scan_time_ms: int = 0
@@ -49,7 +51,7 @@ class ScanResult:
 
 class SecurityScanner:
     """Security vulnerability scanner"""
-    
+
     # OWASP Top 10 mapping
     OWASP_CATEGORIES = {
         "A01": "Broken Access Control",
@@ -63,25 +65,25 @@ class SecurityScanner:
         "A09": "Security Logging and Monitoring Failures",
         "A10": "Server-Side Request Forgery",
     }
-    
+
     # CWE to OWASP mapping
     CWE_TO_OWASP = {
-        "CWE-89": "A03",   # SQL Injection
-        "CWE-78": "A03",   # OS Command Injection
-        "CWE-79": "A03",   # XSS
-        "CWE-94": "A03",   # Code Injection
-        "CWE-22": "A01",   # Path Traversal
+        "CWE-89": "A03",  # SQL Injection
+        "CWE-78": "A03",  # OS Command Injection
+        "CWE-79": "A03",  # XSS
+        "CWE-94": "A03",  # Code Injection
+        "CWE-22": "A01",  # Path Traversal
         "CWE-312": "A02",  # Cleartext Storage
         "CWE-798": "A07",  # Hardcoded Credentials
         "CWE-307": "A07",  # Brute Force
         "CWE-502": "A08",  # Deserialization
         "CWE-918": "A10",  # SSRF
     }
-    
+
     def __init__(self):
         self.parser = get_parser()
         self.custom_rules = self._load_custom_rules()
-    
+
     def _load_custom_rules(self) -> List[Dict]:
         """Load custom security rules"""
         return [
@@ -110,7 +112,7 @@ class SecurityScanner:
             {
                 "id": "CS-S003",
                 "name": "Insecure Deserialization",
-                "pattern": r'(?:pickle\.loads|yaml\.load|eval|exec)\s*\(',
+                "pattern": r"(?:pickle\.loads|yaml\.load|eval|exec)\s*\(",
                 "severity": "critical",
                 "confidence": "high",
                 "message": "Insecure deserialization detected",
@@ -121,7 +123,7 @@ class SecurityScanner:
             {
                 "id": "CS-S004",
                 "name": "Command Injection Risk",
-                "pattern": r'(?:os\.system|subprocess\.call|subprocess\.Popen)\s*\([^)]*%',
+                "pattern": r"(?:os\.system|subprocess\.call|subprocess\.Popen)\s*\([^)]*%",
                 "severity": "critical",
                 "confidence": "medium",
                 "message": "Potential command injection vulnerability",
@@ -132,7 +134,7 @@ class SecurityScanner:
             {
                 "id": "CS-S005",
                 "name": "Weak Cryptography",
-                "pattern": r'(?:md5|sha1)\s*\(',
+                "pattern": r"(?:md5|sha1)\s*\(",
                 "severity": "medium",
                 "confidence": "medium",
                 "message": "Use of weak cryptographic algorithm",
@@ -143,7 +145,7 @@ class SecurityScanner:
             {
                 "id": "CS-S006",
                 "name": "Debug Mode Enabled",
-                "pattern": r'DEBUG\s*=\s*True',
+                "pattern": r"DEBUG\s*=\s*True",
                 "severity": "medium",
                 "confidence": "high",
                 "message": "Debug mode should not be enabled in production",
@@ -154,7 +156,7 @@ class SecurityScanner:
             {
                 "id": "CS-S007",
                 "name": "XSS Vulnerability",
-                "pattern": r'(?:innerHTML|outerHTML|document\.write)\s*=\s*',
+                "pattern": r"(?:innerHTML|outerHTML|document\.write)\s*=\s*",
                 "severity": "high",
                 "confidence": "medium",
                 "message": "Potential XSS vulnerability",
@@ -165,7 +167,7 @@ class SecurityScanner:
             {
                 "id": "CS-S008",
                 "name": "Insecure CORS",
-                "pattern": r'Access-Control-Allow-Origin.*\*',
+                "pattern": r"Access-Control-Allow-Origin.*\*",
                 "severity": "low",
                 "confidence": "high",
                 "message": "Permissive CORS policy detected",
@@ -174,49 +176,50 @@ class SecurityScanner:
                 "languages": ["*"],
             },
         ]
-    
+
     def scan_file(self, file_path: str, content: Optional[str] = None) -> ScanResult:
         """Scan a single file for security issues"""
         import time
+
         start_time = time.time()
-        
+
         findings = []
         errors = []
-        
+
         try:
             # Parse the file
             parsed = self.parser.parse_file(file_path, content)
-            
+
             if parsed.errors:
                 errors.extend(parsed.errors)
-            
+
             if parsed.language == "unknown":
                 return ScanResult(errors=errors)
-            
+
             # Run custom rule-based scanning
             rule_findings = self._scan_with_rules(file_path, content, parsed.language)
             findings.extend(rule_findings)
-            
+
             # Run AST-based analysis
             ast_findings = self._scan_ast(parsed)
             findings.extend(ast_findings)
-            
+
             # Run Semgrep if available
             if self._is_semgrep_available():
                 semgrep_findings = self._run_semgrep(file_path)
                 findings.extend(semgrep_findings)
-            
+
             # Run Bandit for Python files
             if parsed.language == "python" and self._is_bandit_available():
                 bandit_findings = self._run_bandit(file_path)
                 findings.extend(bandit_findings)
-            
+
         except Exception as e:
             logger.error(f"Error scanning {file_path}: {e}")
             errors.append(str(e))
-        
+
         scan_time_ms = int((time.time() - start_time) * 1000)
-        
+
         return ScanResult(
             findings=findings,
             errors=errors,
@@ -224,40 +227,43 @@ class SecurityScanner:
             files_scanned=1,
             rules_applied=len(self.custom_rules),
         )
-    
-    def scan_directory(self, directory: str, include_patterns: Optional[List[str]] = None) -> ScanResult:
+
+    def scan_directory(
+        self, directory: str, include_patterns: Optional[List[str]] = None
+    ) -> ScanResult:
         """Scan a directory for security issues"""
         import time
+
         start_time = time.time()
-        
+
         all_findings = []
         all_errors = []
         files_scanned = 0
-        
+
         path = Path(directory)
-        
+
         for file_path in path.rglob("*"):
             if not file_path.is_file():
                 continue
-            
+
             # Check if file should be included
             if include_patterns:
                 if not any(file_path.match(pattern) for pattern in include_patterns):
                     continue
-            
+
             # Skip certain directories
             if any(part.startswith(".") for part in file_path.parts):
                 continue
             if "node_modules" in file_path.parts or "__pycache__" in file_path.parts:
                 continue
-            
+
             result = self.scan_file(str(file_path))
             all_findings.extend(result.findings)
             all_errors.extend(result.errors)
             files_scanned += 1
-        
+
         scan_time_ms = int((time.time() - start_time) * 1000)
-        
+
         return ScanResult(
             findings=all_findings,
             errors=all_errors,
@@ -265,31 +271,33 @@ class SecurityScanner:
             files_scanned=files_scanned,
             rules_applied=len(self.custom_rules),
         )
-    
-    def _scan_with_rules(self, file_path: str, content: Optional[str], language: str) -> List[SecurityFinding]:
+
+    def _scan_with_rules(
+        self, file_path: str, content: Optional[str], language: str
+    ) -> List[SecurityFinding]:
         """Scan file using custom regex rules"""
         findings = []
-        
+
         if content is None:
             try:
                 with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
             except Exception:
                 return findings
-        
+
         lines = content.split("\n")
-        
+
         for rule in self.custom_rules:
             # Check if rule applies to this language
             if rule["languages"] != ["*"] and language not in rule["languages"]:
                 continue
-            
+
             try:
                 pattern = re.compile(rule["pattern"], re.IGNORECASE)
-                
+
                 for line_num, line in enumerate(lines, 1):
                     matches = pattern.finditer(line)
-                    
+
                     for match in matches:
                         finding = SecurityFinding(
                             rule_id=rule["id"],
@@ -308,23 +316,23 @@ class SecurityScanner:
                             owasp_category=self.CWE_TO_OWASP.get(rule.get("cwe_id")),
                         )
                         findings.append(finding)
-                        
+
             except re.error as e:
                 logger.warning(f"Invalid regex in rule {rule['id']}: {e}")
-        
+
         return findings
-    
+
     def _scan_ast(self, parsed: ParsedFile) -> List[SecurityFinding]:
         """Scan using AST analysis"""
         findings = []
-        
+
         # Check for dangerous function calls
         dangerous_functions = {
             "python": ["eval", "exec", "compile", "__import__"],
             "javascript": ["eval", "Function", "setTimeout", "setInterval"],
             "java": ["Runtime.exec", "ProcessBuilder"],
         }
-        
+
         if parsed.language in dangerous_functions:
             for func in parsed.functions:
                 if func.name in dangerous_functions[parsed.language]:
@@ -342,9 +350,9 @@ class SecurityScanner:
                         owasp_category="A03",
                     )
                     findings.append(finding)
-        
+
         return findings
-    
+
     def _is_semgrep_available(self) -> bool:
         """Check if Semgrep is installed"""
         try:
@@ -352,11 +360,11 @@ class SecurityScanner:
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
-    
+
     def _run_semgrep(self, file_path: str) -> List[SecurityFinding]:
         """Run Semgrep scan"""
         findings = []
-        
+
         try:
             result = subprocess.run(
                 [
@@ -371,10 +379,10 @@ class SecurityScanner:
                 text=True,
                 timeout=60,
             )
-            
+
             if result.returncode in (0, 1):  # 1 means findings found
                 output = json.loads(result.stdout)
-                
+
                 for match in output.get("results", []):
                     finding = SecurityFinding(
                         rule_id=match.get("check_id", "unknown"),
@@ -390,14 +398,14 @@ class SecurityScanner:
                         code_snippet=match.get("extra", {}).get("lines", ""),
                     )
                     findings.append(finding)
-                    
+
         except subprocess.TimeoutExpired:
             logger.warning(f"Semgrep timeout for {file_path}")
         except Exception as e:
             logger.error(f"Semgrep error: {e}")
-        
+
         return findings
-    
+
     def _is_bandit_available(self) -> bool:
         """Check if Bandit is installed"""
         try:
@@ -405,11 +413,11 @@ class SecurityScanner:
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
-    
+
     def _run_bandit(self, file_path: str) -> List[SecurityFinding]:
         """Run Bandit scan for Python files"""
         findings = []
-        
+
         try:
             result = subprocess.run(
                 ["bandit", "-f", "json", "-q", file_path],
@@ -417,10 +425,10 @@ class SecurityScanner:
                 text=True,
                 timeout=60,
             )
-            
+
             if result.stdout:
                 output = json.loads(result.stdout)
-                
+
                 for issue in output.get("results", []):
                     finding = SecurityFinding(
                         rule_id=issue.get("test_id", "B000"),
@@ -435,14 +443,14 @@ class SecurityScanner:
                         cwe_id=issue.get("cwe", ""),
                     )
                     findings.append(finding)
-                    
+
         except subprocess.TimeoutExpired:
             logger.warning(f"Bandit timeout for {file_path}")
         except Exception as e:
             logger.error(f"Bandit error: {e}")
-        
+
         return findings
-    
+
     def _map_semgrep_severity(self, severity: str) -> str:
         """Map Semgrep severity to our severity levels"""
         mapping = {

@@ -17,6 +17,7 @@ logger = structlog.get_logger()
 
 class TaintLevel(Enum):
     """Taint level classification"""
+
     CLEAN = "clean"
     LOW = "low"
     MEDIUM = "medium"
@@ -27,6 +28,7 @@ class TaintLevel(Enum):
 @dataclass
 class TaintSource:
     """A source of tainted data"""
+
     name: str
     line: int
     column: int
@@ -37,6 +39,7 @@ class TaintSource:
 @dataclass
 class TaintSink:
     """A sink where tainted data can cause harm"""
+
     name: str
     line: int
     column: int
@@ -47,6 +50,7 @@ class TaintSink:
 @dataclass
 class TaintFlow:
     """A flow of tainted data from source to sink"""
+
     source: TaintSource
     sink: TaintSink
     path: List[Tuple[int, int]] = field(default_factory=list)
@@ -57,6 +61,7 @@ class TaintFlow:
 @dataclass
 class TaintFinding:
     """A taint analysis finding"""
+
     vulnerability_type: str
     severity: str
     message: str
@@ -71,6 +76,7 @@ class TaintFinding:
 @dataclass
 class TaintResult:
     """Result of taint analysis"""
+
     findings: List[TaintFinding] = field(default_factory=list)
     sources: List[TaintSource] = field(default_factory=list)
     sinks: List[TaintSink] = field(default_factory=list)
@@ -80,7 +86,7 @@ class TaintResult:
 
 class TaintAnalyzer:
     """Taint analysis engine for data flow tracking"""
-    
+
     # Default taint sources by language
     DEFAULT_SOURCES = {
         "python": [
@@ -114,7 +120,7 @@ class TaintAnalyzer:
             ("BufferedReader.readLine", TaintLevel.MEDIUM, "file_read"),
         ],
     }
-    
+
     # Default taint sinks by language
     DEFAULT_SINKS = {
         "python": [
@@ -147,7 +153,7 @@ class TaintAnalyzer:
             ("ScriptEngine.eval", "code_execution", TaintLevel.CRITICAL),
         ],
     }
-    
+
     # Sanitization functions
     SANITIZERS = {
         "python": [
@@ -173,10 +179,10 @@ class TaintAnalyzer:
             "PreparedStatement",
         ],
     }
-    
+
     def __init__(self):
         self.parser = get_parser()
-    
+
     def analyze_file(self, file_path: str, content: Optional[str] = None) -> TaintResult:
         """Perform taint analysis on a file"""
         findings = []
@@ -184,39 +190,39 @@ class TaintAnalyzer:
         sinks = []
         flows = []
         errors = []
-        
+
         try:
             # Parse the file
             parsed = self.parser.parse_file(file_path, content)
-            
+
             if parsed.errors:
                 errors.extend(parsed.errors)
-            
+
             if parsed.language == "unknown":
                 return TaintResult(errors=errors)
-            
+
             # Identify sources
             file_sources = self._identify_sources(parsed)
             sources.extend(file_sources)
-            
+
             # Identify sinks
             file_sinks = self._identify_sinks(parsed)
             sinks.extend(file_sinks)
-            
+
             # Track data flows
             file_flows = self._track_flows(parsed, sources, sinks)
             flows.extend(file_flows)
-            
+
             # Generate findings from vulnerable flows
             for flow in flows:
                 if flow.is_vulnerable:
                     finding = self._create_finding(flow, parsed.file_path)
                     findings.append(finding)
-            
+
         except Exception as e:
             logger.error(f"Error in taint analysis of {file_path}: {e}")
             errors.append(str(e))
-        
+
         return TaintResult(
             findings=findings,
             sources=sources,
@@ -224,20 +230,20 @@ class TaintAnalyzer:
             flows=flows,
             errors=errors,
         )
-    
+
     def _identify_sources(self, parsed: ParsedFile) -> List[TaintSource]:
         """Identify taint sources in the code"""
         sources = []
         language_sources = self.DEFAULT_SOURCES.get(parsed.language, [])
-        
+
         try:
             with open(parsed.file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
         except Exception:
             return sources
-        
+
         lines = content.split("\n")
-        
+
         for line_num, line in enumerate(lines, 1):
             for source_pattern, level, source_type in language_sources:
                 if source_pattern in line:
@@ -250,22 +256,22 @@ class TaintAnalyzer:
                         source_type=source_type,
                     )
                     sources.append(source)
-        
+
         return sources
-    
+
     def _identify_sinks(self, parsed: ParsedFile) -> List[TaintSink]:
         """Identify taint sinks in the code"""
         sinks = []
         language_sinks = self.DEFAULT_SINKS.get(parsed.language, [])
-        
+
         try:
             with open(parsed.file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
         except Exception:
             return sinks
-        
+
         lines = content.split("\n")
-        
+
         for line_num, line in enumerate(lines, 1):
             for sink_pattern, sink_type, required_level in language_sinks:
                 if sink_pattern in line:
@@ -278,9 +284,9 @@ class TaintAnalyzer:
                         required_taint_level=required_level,
                     )
                     sinks.append(sink)
-        
+
         return sinks
-    
+
     def _track_flows(
         self,
         parsed: ParsedFile,
@@ -289,15 +295,15 @@ class TaintAnalyzer:
     ) -> List[TaintFlow]:
         """Track data flows from sources to sinks"""
         flows = []
-        
+
         try:
             with open(parsed.file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
         except Exception:
             return flows
-        
+
         lines = content.split("\n")
-        
+
         for source in sources:
             for sink in sinks:
                 # Simple flow detection: check if source appears before sink
@@ -306,9 +312,9 @@ class TaintAnalyzer:
                     flow = self._analyze_flow_between(source, sink, lines, parsed)
                     if flow:
                         flows.append(flow)
-        
+
         return flows
-    
+
     def _analyze_flow_between(
         self,
         source: TaintSource,
@@ -320,36 +326,36 @@ class TaintAnalyzer:
         # Extract variable name from source line
         source_line = lines[source.line - 1]
         variable_match = self._extract_variable(source_line, source.name)
-        
+
         if not variable_match:
             return None
-        
+
         variable_name = variable_match
         path = [(source.line, source.column)]
         sanitizers = []
-        
+
         # Track variable through the code
         for line_num in range(source.line, sink.line):
             line = lines[line_num - 1]
-            
+
             # Check if variable is used
             if variable_name in line:
                 path.append((line_num, line.find(variable_name) + 1))
-                
+
                 # Check for sanitizers
                 for sanitizer in self.SANITIZERS.get(parsed.language, []):
                     if sanitizer in line and variable_name in line:
                         sanitizers.append(sanitizer)
-        
+
         path.append((sink.line, sink.column))
-        
+
         # Determine if flow is vulnerable
         is_vulnerable = len(sanitizers) == 0
-        
+
         # Check taint level against sink requirement
         if source.taint_level.value in ["critical", "high"]:
             is_vulnerable = is_vulnerable and True
-        
+
         return TaintFlow(
             source=source,
             sink=sink,
@@ -357,23 +363,23 @@ class TaintAnalyzer:
             sanitizers=sanitizers,
             is_vulnerable=is_vulnerable,
         )
-    
+
     def _extract_variable(self, line: str, source_pattern: str) -> Optional[str]:
         """Extract variable name from a line containing a source"""
         import re
-        
+
         # Pattern: variable = source(...)
-        match = re.search(r'(\w+)\s*=\s*' + re.escape(source_pattern), line)
+        match = re.search(r"(\w+)\s*=\s*" + re.escape(source_pattern), line)
         if match:
             return match.group(1)
-        
+
         # Pattern: variable = source
-        match = re.search(r'(\w+)\s*=\s*' + re.escape(source_pattern.split('.')[-1]), line)
+        match = re.search(r"(\w+)\s*=\s*" + re.escape(source_pattern.split(".")[-1]), line)
         if match:
             return match.group(1)
-        
+
         return None
-    
+
     def _create_finding(self, flow: TaintFlow, file_path: str) -> TaintFinding:
         """Create a finding from a taint flow"""
         vulnerability_types = {
@@ -385,27 +391,24 @@ class TaintAnalyzer:
             "file_write": ("Path Traversal", "CWE-22"),
             "open_redirect": ("Open Redirect", "CWE-601"),
         }
-        
-        vuln_type, cwe_id = vulnerability_types.get(
-            flow.sink.sink_type,
-            ("Taint Flow", "CWE-20")
-        )
-        
+
+        vuln_type, cwe_id = vulnerability_types.get(flow.sink.sink_type, ("Taint Flow", "CWE-20"))
+
         severity_map = {
             TaintLevel.CRITICAL: "critical",
             TaintLevel.HIGH: "high",
             TaintLevel.MEDIUM: "medium",
             TaintLevel.LOW: "low",
         }
-        
+
         message = (
             f"Potential {vuln_type} vulnerability: "
             f"Untrusted data from '{flow.source.name}' (line {flow.source.line}) "
             f"flows to '{flow.sink.name}' (line {flow.sink.line})"
         )
-        
+
         remediation = self._get_remediation(flow.sink.sink_type)
-        
+
         return TaintFinding(
             vulnerability_type=vuln_type,
             severity=severity_map.get(flow.source.taint_level, "medium"),
@@ -417,7 +420,7 @@ class TaintAnalyzer:
             remediation=remediation,
             cwe_id=cwe_id,
         )
-    
+
     def _get_remediation(self, sink_type: str) -> str:
         """Get remediation advice for a sink type"""
         remediations = {

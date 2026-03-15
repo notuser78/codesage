@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 class RepositoryStatus(str, Enum):
     """Repository status"""
+
     PENDING = "pending"
     CLONING = "cloning"
     READY = "ready"
@@ -20,6 +21,7 @@ class RepositoryStatus(str, Enum):
 
 class Repository(BaseModel):
     """Repository model"""
+
     id: UUID = Field(default_factory=uuid4)
     url: HttpUrl
     name: str
@@ -32,13 +34,14 @@ class Repository(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     metadata: Dict = Field(default_factory=dict)
-    
+
     class Config:
         from_attributes = True
 
 
 class RepositoryCreate(BaseModel):
     """Repository creation request"""
+
     url: HttpUrl
     name: Optional[str] = None
     description: Optional[str] = None
@@ -49,6 +52,7 @@ class RepositoryCreate(BaseModel):
 
 class RepositoryUpdate(BaseModel):
     """Repository update request"""
+
     name: Optional[str] = None
     description: Optional[str] = None
     branch: Optional[str] = None
@@ -56,6 +60,7 @@ class RepositoryUpdate(BaseModel):
 
 class FileInfo(BaseModel):
     """File information"""
+
     path: str
     language: str
     lines: int
@@ -66,6 +71,7 @@ class FileInfo(BaseModel):
 
 class FunctionInfo(BaseModel):
     """Function information"""
+
     name: str
     file_path: str
     line_start: int
@@ -78,6 +84,7 @@ class FunctionInfo(BaseModel):
 
 class ClassInfo(BaseModel):
     """Class information"""
+
     name: str
     file_path: str
     line_start: int
@@ -88,6 +95,7 @@ class ClassInfo(BaseModel):
 
 class RepositoryStatistics(BaseModel):
     """Repository statistics"""
+
     repo_id: UUID
     total_files: int
     total_lines: int

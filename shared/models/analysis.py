@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 class AnalysisStatus(str, Enum):
     """Analysis job status"""
+
     PENDING = "pending"
     QUEUED = "queued"
     RUNNING = "running"
@@ -22,6 +23,7 @@ class AnalysisStatus(str, Enum):
 
 class AnalysisType(str, Enum):
     """Types of analysis"""
+
     SECURITY = "security"
     PERFORMANCE = "performance"
     QUALITY = "quality"
@@ -31,6 +33,7 @@ class AnalysisType(str, Enum):
 
 class Severity(str, Enum):
     """Severity levels"""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -40,6 +43,7 @@ class Severity(str, Enum):
 
 class Finding(BaseModel):
     """Base finding model"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     rule_id: str
     rule_name: str
@@ -62,6 +66,7 @@ class Finding(BaseModel):
 
 class SecurityFinding(Finding):
     """Security-specific finding"""
+
     vulnerability_type: str
     exploitability: Optional[str] = None
     impact: Optional[str] = None
@@ -70,6 +75,7 @@ class SecurityFinding(Finding):
 
 class PerformanceFinding(Finding):
     """Performance-specific finding"""
+
     metric: str  # time, memory, cpu, etc.
     current_value: Optional[str] = None
     target_value: Optional[str] = None
@@ -79,6 +85,7 @@ class PerformanceFinding(Finding):
 
 class QualityFinding(Finding):
     """Code quality finding"""
+
     category: str  # complexity, style, maintainability, etc.
     metric_value: Optional[float] = None
     threshold: Optional[float] = None
@@ -86,6 +93,7 @@ class QualityFinding(Finding):
 
 class AnalysisMetrics(BaseModel):
     """Analysis metrics"""
+
     files_analyzed: int = 0
     lines_analyzed: int = 0
     findings_total: int = 0
@@ -95,6 +103,7 @@ class AnalysisMetrics(BaseModel):
 
 class AnalysisResult(BaseModel):
     """Analysis result model"""
+
     id: UUID = Field(default_factory=uuid4)
     repo_id: str
     analysis_type: AnalysisType
@@ -109,6 +118,7 @@ class AnalysisResult(BaseModel):
 
 class AnalysisJob(BaseModel):
     """Analysis job model"""
+
     id: UUID = Field(default_factory=uuid4)
     repo_id: str
     repo_url: str

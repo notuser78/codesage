@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class CVSSScore(BaseModel):
     """CVSS vulnerability score"""
+
     score: float = Field(ge=0, le=10)
     vector: str
     severity: str  # None, Low, Medium, High, Critical
@@ -16,6 +17,7 @@ class CVSSScore(BaseModel):
 
 class Vulnerability(BaseModel):
     """Security vulnerability"""
+
     id: str
     cwe_id: Optional[str] = None
     cwe_name: Optional[str] = None
@@ -30,6 +32,7 @@ class Vulnerability(BaseModel):
 
 class SecurityRule(BaseModel):
     """Security analysis rule"""
+
     id: str
     name: str
     description: str
@@ -44,6 +47,7 @@ class SecurityRule(BaseModel):
 
 class SecurityPolicy(BaseModel):
     """Security policy configuration"""
+
     name: str
     description: str
     rules: List[str]  # rule IDs
@@ -55,6 +59,7 @@ class SecurityPolicy(BaseModel):
 
 class TaintSource(BaseModel):
     """Taint analysis source"""
+
     name: str
     source_type: str  # user_input, file, network, etc.
     taint_level: str  # low, medium, high, critical
@@ -63,6 +68,7 @@ class TaintSource(BaseModel):
 
 class TaintSink(BaseModel):
     """Taint analysis sink"""
+
     name: str
     sink_type: str  # sql, command, xss, etc.
     required_taint_level: str
@@ -71,6 +77,7 @@ class TaintSink(BaseModel):
 
 class TaintFlow(BaseModel):
     """Taint flow from source to sink"""
+
     source: TaintSource
     sink: TaintSink
     path: List[Dict]  # intermediate steps
@@ -80,6 +87,7 @@ class TaintFlow(BaseModel):
 
 class SecurityReport(BaseModel):
     """Security analysis report"""
+
     repo_id: str
     analysis_id: str
     summary: str

@@ -16,11 +16,11 @@ logger = structlog.get_logger()
 
 class PerformanceAdapter(BaseAdapter):
     """Adapter for performance analysis tasks"""
-    
+
     SYSTEM_PROMPT = """You are a performance optimization expert analyzing code.
 Your task is to identify performance bottlenecks and suggest optimizations.
 Focus on algorithmic complexity, resource usage, and best practices."""
-    
+
     async def analyze(self, code: str, language: str) -> dict:
         """Analyze code for performance issues"""
         prompt = f"""Analyze the following {language} code for performance issues:
@@ -59,7 +59,7 @@ Format as JSON:
     "overall_score": 0-100,
     "summary": "brief summary"
 }}"""
-        
+
         try:
             response_text = await self.generate_prompt(
                 system_prompt=self.SYSTEM_PROMPT,
@@ -67,17 +67,17 @@ Format as JSON:
                 max_tokens=2048,
                 temperature=0.1,
             )
-            
+
             # Parse JSON response
             try:
                 result = json.loads(response_text)
             except json.JSONDecodeError:
-                json_match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
+                json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
                 if json_match:
                     result = json.loads(json_match.group(1))
                 else:
                     result = {"raw_response": response_text}
-            
+
             return {
                 "text": response_text,
                 "structured": result,
@@ -86,7 +86,7 @@ Format as JSON:
                 "confidence": 0.8,
                 "model_used": "performance-analyzer",
             }
-            
+
         except Exception as e:
             logger.error(f"Performance analysis failed: {e}")
             return {
@@ -96,7 +96,7 @@ Format as JSON:
                 "overall_score": 0,
                 "confidence": 0,
             }
-    
+
     async def suggest_optimizations(
         self,
         code: str,
@@ -123,7 +123,7 @@ Format as JSON:
     "expected_improvement": "e.g., 50% faster",
     "trade_offs": "any trade-offs made"
 }}"""
-        
+
         try:
             response_text = await self.generate_prompt(
                 system_prompt=self.SYSTEM_PROMPT,
@@ -131,23 +131,23 @@ Format as JSON:
                 max_tokens=2048,
                 temperature=0.2,
             )
-            
+
             try:
                 result = json.loads(response_text)
             except json.JSONDecodeError:
-                json_match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
+                json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
                 if json_match:
                     result = json.loads(json_match.group(1))
                 else:
                     result = {"optimized_code": response_text}
-            
+
             return {
                 "optimized_code": result.get("optimized_code", ""),
                 "explanation": result.get("explanation", ""),
                 "expected_improvement": result.get("expected_improvement", ""),
                 "trade_offs": result.get("trade_offs", ""),
             }
-            
+
         except Exception as e:
             logger.error(f"Optimization suggestion failed: {e}")
             return {
@@ -155,7 +155,7 @@ Format as JSON:
                 "explanation": f"Failed: {e}",
                 "expected_improvement": "",
             }
-    
+
     async def analyze_complexity(self, code: str, language: str) -> dict:
         """Analyze time and space complexity"""
         prompt = f"""Analyze the time and space complexity of this {language} code:
@@ -179,17 +179,17 @@ Format as JSON:
     "worst_case": "description",
     "bottlenecks": ["list of bottlenecks"]
 }}"""
-        
+
         response_text = await self.generate_prompt(
             system_prompt=self.SYSTEM_PROMPT,
             user_prompt=prompt,
             max_tokens=1024,
             temperature=0.1,
         )
-        
+
         try:
             result = json.loads(response_text)
         except json.JSONDecodeError:
             result = {"raw_analysis": response_text}
-        
+
         return result
