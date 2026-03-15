@@ -70,10 +70,10 @@ makemigrations:
 test:
 	pytest tests/ -v --cov=services --cov-report=html --cov-report=term
 
-test-unit:
+test-unit: dev-setup
 	pytest tests/unit/ -v
 
-test-integration:
+test-integration: dev-setup
 	pytest tests/integration/ -v
 
 test-e2e:
@@ -154,7 +154,10 @@ benchmark-api:
 
 # Development
 dev-setup:
-	pip install -r services/api/requirements.txt -r services/analysis/requirements.txt -r services/llm/requirements.txt -r services/knowledge/requirements.txt
+	# Install core dependencies first to avoid build-time isolation issues
+	pip install -r services/api/requirements.txt -r services/analysis/requirements.txt -r services/knowledge/requirements.txt
+	# Install LLM dependencies separately with build isolation disabled to ensure torch is available when building cuda extensions
+	PIP_NO_BUILD_ISOLATION=1 pip install -r services/llm/requirements.txt
 
 check-services:
 	@echo "Checking service health..."
