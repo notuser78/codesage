@@ -28,7 +28,7 @@ tree-sitter-cpp==0.23.4
 # Security Analysis
 bandit==1.7.7
 semgrep==1.57.0
-safety==3.0.1
+safety==3.7.0
 
 # Performance Analysis
 radon==6.0.1

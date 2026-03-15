@@ -68,16 +68,16 @@ makemigrations:
 
 # Testing
 test:
-	pytest tests/ -v --cov=services --cov-report=html --cov-report=term
+	PYTHONPATH=. pytest tests/ -v --cov=services --cov-report=html --cov-report=term
 
 test-unit: dev-setup
-	pytest tests/unit/ -v
+	PYTHONPATH=. pytest tests/unit/ -v
 
 test-integration: dev-setup
-	pytest tests/integration/ -v
+	PYTHONPATH=. pytest tests/integration/ -v
 
 test-e2e:
-	pytest tests/e2e/ -v
+	PYTHONPATH=. pytest tests/e2e/ -v
 
 # Code Quality
 lint:
