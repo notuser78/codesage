@@ -5,7 +5,7 @@ Specialized adapter for security vulnerability analysis
 
 import json
 import re
-from typing import List
+from typing import List, Optional
 
 import structlog
 
@@ -16,11 +16,11 @@ logger = structlog.get_logger()
 
 class SecurityAdapter(BaseAdapter):
     """Adapter for security analysis tasks"""
-    
+
     SYSTEM_PROMPT = """You are a security expert analyzing code for vulnerabilities.
 Your task is to identify security issues and provide actionable recommendations.
 Be specific about the vulnerability type, location, and remediation steps."""
-    
+
     async def analyze(self, code: str, language: str) -> dict:
         """Analyze code for security vulnerabilities"""
         prompt = f"""Analyze the following {language} code for security vulnerabilities:
@@ -49,7 +49,7 @@ Format your response as JSON:
     ],
     "summary": "brief summary"
 }}"""
-        
+
         try:
             response_text = await self.generate_prompt(
                 system_prompt=self.SYSTEM_PROMPT,
@@ -57,18 +57,18 @@ Format your response as JSON:
                 max_tokens=2048,
                 temperature=0.1,
             )
-            
+
             # Parse JSON response
             try:
                 result = json.loads(response_text)
             except json.JSONDecodeError:
                 # Try to extract JSON from markdown
-                json_match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
+                json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
                 if json_match:
                     result = json.loads(json_match.group(1))
                 else:
                     result = {"raw_response": response_text}
-            
+
             return {
                 "text": response_text,
                 "structured": result,
@@ -76,7 +76,7 @@ Format your response as JSON:
                 "confidence": 0.85,
                 "model_used": "security-analyzer",
             }
-            
+
         except Exception as e:
             logger.error(f"Security analysis failed: {e}")
             return {
@@ -85,7 +85,7 @@ Format your response as JSON:
                 "vulnerabilities_found": 0,
                 "confidence": 0,
             }
-    
+
     async def generate_fix(
         self,
         code: str,
@@ -110,7 +110,7 @@ Format as JSON:
     "explanation": "explanation of changes",
     "best_practices": "additional recommendations"
 }}"""
-        
+
         try:
             response_text = await self.generate_prompt(
                 system_prompt=self.SYSTEM_PROMPT,
@@ -118,23 +118,23 @@ Format as JSON:
                 max_tokens=2048,
                 temperature=0.1,
             )
-            
+
             # Parse JSON response
             try:
                 result = json.loads(response_text)
             except json.JSONDecodeError:
-                json_match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
+                json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
                 if json_match:
                     result = json.loads(json_match.group(1))
                 else:
                     result = {"fixed_code": response_text}
-            
+
             return {
                 "fixed_code": result.get("fixed_code", ""),
                 "explanation": result.get("explanation", ""),
                 "confidence": 0.9,
             }
-            
+
         except Exception as e:
             logger.error(f"Fix generation failed: {e}")
             return {
@@ -142,7 +142,7 @@ Format as JSON:
                 "explanation": f"Failed to generate fix: {e}",
                 "confidence": 0,
             }
-    
+
     async def explain_vulnerability(
         self,
         vulnerability_type: str,
@@ -150,10 +150,10 @@ Format as JSON:
     ) -> dict:
         """Explain a vulnerability type"""
         prompt = f"""Explain the {vulnerability_type} vulnerability"""
-        
+
         if cwe_id:
             prompt += f" (CWE-{cwe_id})"
-        
+
         prompt += """ in detail:
 
 Provide:
@@ -162,14 +162,14 @@ Provide:
 3. How to prevent it
 4. Code examples of vulnerable and secure code
 """
-        
+
         response_text = await self.generate_prompt(
             system_prompt=self.SYSTEM_PROMPT,
             user_prompt=prompt,
             max_tokens=2048,
             temperature=0.3,
         )
-        
+
         return {
             "explanation": response_text,
             "vulnerability_type": vulnerability_type,

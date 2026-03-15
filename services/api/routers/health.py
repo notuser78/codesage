@@ -2,7 +2,7 @@
 Health check endpoints
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,14 +39,14 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
         "database": False,
         "redis": False,
     }
-    
+
     # Check database
     try:
         await db.execute(text("SELECT 1"))
         checks["database"] = True
     except Exception:
         pass
-    
+
     # Check Redis
     try:
         if redis_pool:
@@ -54,9 +54,9 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
             checks["redis"] = True
     except Exception:
         pass
-    
+
     all_ready = all(checks.values())
-    
+
     return ReadinessResponse(
         ready=all_ready,
         checks=checks,

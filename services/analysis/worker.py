@@ -120,6 +120,6 @@ def start_metrics_server():
 if __name__ == "__main__":
     # Start metrics server
     start_metrics_server()
-    
+
     # Start worker
     app.start()

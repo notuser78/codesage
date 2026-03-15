@@ -14,18 +14,18 @@ logger = structlog.get_logger()
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Request/response logging middleware"""
-    
+
     async def dispatch(self, request: Request, call_next):
         # Generate request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        
+
         # Start timer
         start_time = time.time()
-        
+
         # Log request
         await self._log_request(request)
-        
+
         # Process request
         try:
             response = await call_next(request)
@@ -38,22 +38,22 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 error_type=type(exc).__name__,
             )
             raise
-        
+
         # Calculate duration
         duration_ms = (time.time() - start_time) * 1000
-        
+
         # Log response
         await self._log_response(request, response, duration_ms)
-        
+
         # Add request ID to response headers
         response.headers["X-Request-ID"] = request_id
-        
+
         return response
-    
+
     async def _log_request(self, request: Request):
         """Log incoming request"""
         client_host = request.client.host if request.client else "unknown"
-        
+
         logger.info(
             "Request started",
             request_id=request.state.request_id,
@@ -63,7 +63,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             client_ip=client_host,
             user_agent=request.headers.get("user-agent"),
         )
-    
+
     async def _log_response(
         self,
         request: Request,
@@ -84,18 +84,18 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
 class RequestContext:
     """Helper class for request context logging"""
-    
+
     @staticmethod
     def get_request_id(request: Request) -> str:
         """Get request ID from request state"""
         return getattr(request.state, "request_id", "unknown")
-    
+
     @staticmethod
     def get_user_id(request: Request) -> str:
         """Get user ID from request state"""
         user = getattr(request.state, "user", None)
         return user.get("id") if user else "anonymous"
-    
+
     @staticmethod
     def bind_logger(request: Request):
         """Bind request context to logger"""

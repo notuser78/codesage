@@ -15,14 +15,14 @@ def setup_logging(
     service_name: str = "codesage",
 ):
     """Setup structured logging"""
-    
+
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, level.upper()),
     )
-    
+
     # Configure structlog
     processors = [
         structlog.stdlib.filter_by_level,
@@ -34,12 +34,12 @@ def setup_logging(
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
     ]
-    
+
     if json_format:
         processors.append(structlog.processors.JSONRenderer())
     else:
         processors.append(structlog.dev.ConsoleRenderer())
-    
+
     structlog.configure(
         processors=processors,
         context_class=dict,
@@ -47,7 +47,7 @@ def setup_logging(
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
-    
+
     # Add service name to all logs
     structlog.contextvars.bind_contextvars(service=service_name)
 
@@ -59,18 +59,18 @@ def get_logger(name: str = None):
 
 class RequestContext:
     """Context for request-scoped logging"""
-    
+
     def __init__(self, request_id: str = None, user_id: str = None):
         self.request_id = request_id
         self.user_id = user_id
-    
+
     def bind(self):
         """Bind context to logger"""
         structlog.contextvars.bind_contextvars(
             request_id=self.request_id,
             user_id=self.user_id,
         )
-    
+
     def clear(self):
         """Clear context"""
         structlog.contextvars.clear_contextvars()

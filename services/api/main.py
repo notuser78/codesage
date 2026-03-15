@@ -3,7 +3,6 @@ CodeSage API Gateway
 Main FastAPI application entry point
 """
 
-import asyncio
 from contextlib import asynccontextmanager
 
 import structlog
@@ -35,9 +34,9 @@ async def lifespan(app: FastAPI):
     logger.info("Starting CodeSage API Gateway")
     await init_db()
     logger.info("Database initialized")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down CodeSage API Gateway")
     await close_db()
@@ -112,21 +111,25 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_json()
             # Handle different message types
             message_type = data.get("type")
-            
+
             if message_type == "subscribe":
                 # Subscribe to analysis updates
                 analysis_id = data.get("analysis_id")
-                await websocket.send_json({
-                    "type": "subscribed",
-                    "analysis_id": analysis_id,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "subscribed",
+                        "analysis_id": analysis_id,
+                    }
+                )
             elif message_type == "ping":
                 await websocket.send_json({"type": "pong"})
             else:
-                await websocket.send_json({
-                    "type": "error",
-                    "message": f"Unknown message type: {message_type}",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "message": f"Unknown message type: {message_type}",
+                    }
+                )
     except Exception as e:
         logger.warning(f"WebSocket connection closed: {e}")
     finally:
@@ -149,6 +152,7 @@ setup_telemetry()
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

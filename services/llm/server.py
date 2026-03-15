@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, List, Optional
 
 import structlog
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -32,24 +32,24 @@ performance_adapter: Optional[PerformanceAdapter] = None
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     global model_loader, model_router, security_adapter, performance_adapter
-    
+
     logger.info("Starting LLM Service")
-    
+
     # Initialize model loader
     model_loader = ModelLoader()
     await model_loader.load_default_model()
-    
+
     # Initialize router
     model_router = ModelRouter(model_loader)
-    
+
     # Initialize adapters
     security_adapter = SecurityAdapter(model_loader)
     performance_adapter = PerformanceAdapter(model_loader)
-    
+
     logger.info("LLM Service ready")
-    
+
     yield
-    
+
     # Cleanup
     logger.info("Shutting down LLM Service")
     if model_loader:
@@ -155,7 +155,7 @@ async def list_models():
     """List available models"""
     if not model_loader:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     return [
         ModelInfo(
             id=model_id,
@@ -174,7 +174,7 @@ async def load_model(model_id: str):
     """Load a model"""
     if not model_loader:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         await model_loader.load_model(model_id)
         return {"status": "loaded", "model_id": model_id}
@@ -188,7 +188,7 @@ async def unload_model(model_id: str):
     """Unload a model"""
     if not model_loader:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         await model_loader.unload_model(model_id)
         return {"status": "unloaded", "model_id": model_id}
@@ -202,9 +202,9 @@ async def generate_text(request: GenerationRequest):
     """Generate text using the loaded model"""
     if not model_router:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     start_time = time.time()
-    
+
     try:
         response = await model_router.generate(request)
         return response
@@ -218,15 +218,15 @@ async def generate_stream(request: GenerationRequest):
     """Stream text generation"""
     if not model_router:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     async def stream_generator() -> AsyncGenerator[str, None]:
         try:
             async for chunk in model_router.generate_stream(request):
                 yield f"data: {chunk}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
-            yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
-    
+            yield f'data: {{"error": "{str(e)}"}}\n\n'
+
     return StreamingResponse(
         stream_generator(),
         media_type="text/event-stream",
@@ -238,9 +238,9 @@ async def analyze_code(request: CodeAnalysisRequest):
     """Analyze code for issues"""
     if not security_adapter or not performance_adapter:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     start_time = time.time()
-    
+
     try:
         if request.analysis_type == "security":
             result = await security_adapter.analyze(request.code, request.language)
@@ -265,17 +265,17 @@ Provide:
                 temperature=request.temperature,
             )
             result = await model_router.generate(gen_request)
-        
+
         generation_time_ms = int((time.time() - start_time) * 1000)
-        
+
         return CodeAnalysisResponse(
-            analysis=result.text if hasattr(result, 'text') else result.get("text", ""),
-            suggestions=result.suggestions if hasattr(result, 'suggestions') else [],
-            confidence=result.confidence if hasattr(result, 'confidence') else 0.8,
-            model_used=result.model_used if hasattr(result, 'model_used') else "default",
+            analysis=result.text if hasattr(result, "text") else result.get("text", ""),
+            suggestions=result.suggestions if hasattr(result, "suggestions") else [],
+            confidence=result.confidence if hasattr(result, "confidence") else 0.8,
+            model_used=result.model_used if hasattr(result, "model_used") else "default",
             generation_time_ms=generation_time_ms,
         )
-        
+
     except Exception as e:
         logger.error(f"Code analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -286,21 +286,21 @@ async def fix_vulnerability(request: VulnerabilityFixRequest):
     """Generate a fix for a security vulnerability"""
     if not security_adapter:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         result = await security_adapter.generate_fix(
             code=request.code,
             vulnerability_type=request.vulnerability_type,
             language=request.language,
         )
-        
+
         return VulnerabilityFixResponse(
             original_code=request.code,
             fixed_code=result.get("fixed_code", ""),
             explanation=result.get("explanation", ""),
             confidence=result.get("confidence", 0.8),
         )
-        
+
     except Exception as e:
         logger.error(f"Vulnerability fix generation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -311,28 +311,28 @@ async def complete_code(request: CodeCompletionRequest):
     """Complete code snippet"""
     if not model_router:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         # Format as FIM (Fill-In-the-Middle) if suffix provided
         if request.suffix:
             prompt = f"<fim_prefix>{request.prefix}<fim_suffix>{request.suffix}<fim_middle>"
         else:
             prompt = request.prefix
-        
+
         gen_request = GenerationRequest(
             prompt=prompt,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
             stop_sequences=["\n\n", "\ndef ", "\nclass "],
         )
-        
+
         result = await model_router.generate(gen_request)
-        
+
         return {
             "completion": result.text,
             "model_used": result.model_used,
         }
-        
+
     except Exception as e:
         logger.error(f"Code completion failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -343,19 +343,19 @@ async def create_embeddings(request: EmbeddingRequest):
     """Create embeddings for texts"""
     if not model_loader:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         embeddings = await model_loader.create_embeddings(
             texts=request.texts,
             model_name=request.model,
         )
-        
+
         return EmbeddingResponse(
             embeddings=embeddings,
             model=request.model or model_loader.embedding_model,
             dimension=len(embeddings[0]) if embeddings else 0,
         )
-        
+
     except Exception as e:
         logger.error(f"Embedding creation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -365,6 +365,7 @@ async def create_embeddings(request: EmbeddingRequest):
 async def metrics():
     """Prometheus metrics endpoint"""
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
     return Response(
         content=generate_latest(),
         media_type=CONTENT_TYPE_LATEST,
@@ -373,6 +374,7 @@ async def metrics():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",

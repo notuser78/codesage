@@ -28,22 +28,22 @@ indexer: Optional[CodeIndexer] = None
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     global graph_db, vector_db, indexer
-    
+
     logger.info("Starting Knowledge Service")
-    
+
     # Initialize databases
     graph_db = GraphDB()
     await graph_db.connect()
-    
+
     vector_db = VectorDB()
     await vector_db.connect()
-    
+
     indexer = CodeIndexer(graph_db, vector_db)
-    
+
     logger.info("Knowledge Service ready")
-    
+
     yield
-    
+
     # Cleanup
     logger.info("Shutting down Knowledge Service")
     if graph_db:
@@ -135,7 +135,7 @@ async def health_check():
     """Health check endpoint"""
     neo4j_ok = await graph_db.is_connected() if graph_db else False
     weaviate_ok = await vector_db.is_connected() if vector_db else False
-    
+
     return HealthResponse(
         status="healthy" if (neo4j_ok and weaviate_ok) else "degraded",
         neo4j_connected=neo4j_ok,
@@ -148,7 +148,7 @@ async def index_repository(request: IndexRequest):
     """Index a repository for search"""
     if not indexer:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         result = await indexer.index_repository(
             repo_id=request.repo_id,
@@ -156,7 +156,7 @@ async def index_repository(request: IndexRequest):
             files=request.files,
             analysis_results=request.analysis_results,
         )
-        
+
         return IndexResponse(
             status="completed",
             repo_id=request.repo_id,
@@ -164,7 +164,7 @@ async def index_repository(request: IndexRequest):
             relationships_created=result.get("relationships_created", 0),
             vectors_indexed=result.get("vectors_indexed", 0),
         )
-        
+
     except Exception as e:
         logger.error(f"Indexing failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -175,10 +175,10 @@ async def search_code(request: SearchRequest):
     """Search code using semantic and/or graph search"""
     if not vector_db or not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         results = []
-        
+
         if request.search_type in ["semantic", "hybrid"]:
             semantic_results = await vector_db.search(
                 query=request.query,
@@ -186,14 +186,14 @@ async def search_code(request: SearchRequest):
                 filters=request.filters,
             )
             results.extend(semantic_results)
-        
+
         if request.search_type in ["graph", "hybrid"]:
             graph_results = await graph_db.search(
                 query=request.query,
                 limit=request.limit,
             )
             results.extend(graph_results)
-        
+
         # Deduplicate and sort by score
         seen = set()
         unique_results = []
@@ -202,9 +202,9 @@ async def search_code(request: SearchRequest):
             if key and key not in seen:
                 seen.add(key)
                 unique_results.append(SearchResult(**r))
-        
-        return unique_results[:request.limit]
-        
+
+        return unique_results[: request.limit]
+
     except Exception as e:
         logger.error(f"Search failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -215,19 +215,19 @@ async def find_similar_code(request: SimilarCodeRequest):
     """Find code similar to the provided snippet"""
     if not vector_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         results = await vector_db.find_similar(
             code=request.code,
             language=request.language,
             limit=request.limit,
         )
-        
+
         return {
             "results": results,
             "count": len(results),
         }
-        
+
     except Exception as e:
         logger.error(f"Similar code search failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -238,14 +238,14 @@ async def get_function_details(function_id: str):
     """Get detailed information about a function"""
     if not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         function = await graph_db.get_function(function_id)
         if not function:
             raise HTTPException(status_code=404, detail="Function not found")
-        
+
         return function
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -258,11 +258,11 @@ async def get_call_graph(function_id: str, depth: int = Query(3, ge=1, le=10)):
     """Get the call graph for a function"""
     if not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         graph = await graph_db.get_call_graph(function_id, depth)
         return graph
-        
+
     except Exception as e:
         logger.error(f"Failed to get call graph: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -273,11 +273,11 @@ async def query_graph(request: GraphQueryRequest):
     """Execute a custom Cypher query"""
     if not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         results = await graph_db.execute_query(request.query, request.parameters)
         return {"results": results}
-        
+
     except Exception as e:
         logger.error(f"Graph query failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -288,11 +288,11 @@ async def get_repo_statistics(repo_id: str):
     """Get statistics for a repository"""
     if not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         stats = await graph_db.get_repo_statistics(repo_id)
         return stats
-        
+
     except Exception as e:
         logger.error(f"Failed to get repo statistics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -303,16 +303,16 @@ async def delete_repository(repo_id: str):
     """Delete a repository and all its data"""
     if not graph_db or not vector_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         # Delete from graph database
         await graph_db.delete_repo(repo_id)
-        
+
         # Delete from vector database
         await vector_db.delete_repo(repo_id)
-        
+
         return {"status": "deleted", "repo_id": repo_id}
-        
+
     except Exception as e:
         logger.error(f"Failed to delete repository: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -326,11 +326,11 @@ async def list_repositories(
     """List all indexed repositories"""
     if not graph_db:
         raise HTTPException(status_code=503, detail="Service not ready")
-    
+
     try:
         repos = await graph_db.list_repos(page, page_size)
         return repos
-        
+
     except Exception as e:
         logger.error(f"Failed to list repositories: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -338,6 +338,7 @@ async def list_repositories(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "service:app",
         host="0.0.0.0",
