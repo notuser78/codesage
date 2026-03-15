@@ -3,6 +3,7 @@ Shared models for repositories
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import Dict, List, Optional
 from uuid import UUID, uuid4
 
