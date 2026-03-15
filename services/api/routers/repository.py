@@ -7,8 +7,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from pydantic import BaseModel, HttpUrl
-from sqlalchemy import select
+from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -50,7 +49,7 @@ class RepositoryList(BaseModel):
 
 
 class AnalysisRequest(BaseModel):
-    analysis_types: List[str] = ["security", "performance", "quality"]
+    analysis_types: List[str] = Field(default_factory=lambda: ["security", "performance", "quality"])
     options: Optional[dict] = None
 
 

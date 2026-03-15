@@ -4,7 +4,6 @@ Celery worker for processing analysis tasks
 """
 
 import os
-from typing import Any, Dict
 
 import structlog
 from celery import Celery
@@ -87,7 +86,7 @@ def task_postrun_handler(task_id, task, args, kwargs, retval, state):
 
 
 @task_failure.connect
-def task_failure_handler(task_id, exception, args, kwargs, traceback, einfo):
+def task_failure_handler(sender, task_id, exception, args, kwargs, traceback, einfo):
     """Log task failure"""
     logger.error(
         "Task failed",
@@ -95,7 +94,7 @@ def task_failure_handler(task_id, exception, args, kwargs, traceback, einfo):
         exception=str(exception),
         traceback=traceback,
     )
-    TASKS_PROCESSED.labels(task_type=task.name.split(".")[-1], status="failure").inc()
+    TASKS_PROCESSED.labels(task_type=sender.name.split(".")[-1], status="failure").inc()
 
 
 @app.on_after_configure.connect

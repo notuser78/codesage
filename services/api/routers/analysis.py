@@ -34,8 +34,8 @@ class AnalysisOptions(BaseModel):
 
 class AnalysisRequest(BaseModel):
     snippet: CodeSnippet
-    analysis_types: List[str] = ["security", "performance"]
-    options: AnalysisOptions = AnalysisOptions()
+    analysis_types: List[str] = Field(default_factory=lambda: ["security", "performance"])
+    options: AnalysisOptions = Field(default_factory=AnalysisOptions)
 
 
 class Finding(BaseModel):
@@ -76,7 +76,7 @@ class AnalysisResponse(BaseModel):
 
 class BatchAnalysisRequest(BaseModel):
     snippets: List[CodeSnippet]
-    analysis_types: List[str] = ["security", "performance"]
+    analysis_types: List[str] = Field(default_factory=lambda: ["security", "performance"])
 
 
 # Mock analysis results for demo
