@@ -1,123 +1,150 @@
 # CodeSage Platform
 
-An intelligent, AI-powered code analysis platform that provides comprehensive security scanning, performance analysis, and code quality insights using advanced language models and graph-based knowledge representation.
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org)
 
-## Architecture Overview
+A modular, AI-powered code analysis platform that combines security scanning, performance diagnostics, and maintainability insights using vector search, knowledge graphs, and modern LLMs.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CodeSage Platform                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   VSCode    │  │   Web UI    │  │    CLI      │  │   CI/CD Plugins     │ │
-│  │  Extension  │  │  (Future)   │  │  (Future)   │  │   (Future)          │ │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
-│         └─────────────────┴─────────────────┴────────────────────┘            │
-│                                    │                                         │
-│                         ┌──────────▼──────────┐                              │
-│                         │   Kong API Gateway  │                              │
-│                         │  (Rate Limit, Auth) │                              │
-│                         └──────────┬──────────┘                              │
-│                                    │                                         │
-│  ┌─────────────────────────────────┼─────────────────────────────────────┐  │
-│  │                                 │         Microservices Layer          │  │
-│  │  ┌──────────────┐  ┌───────────▼────────┐  ┌──────────────────────┐  │  │
-│  │  │   API Gateway│  │  Analysis Engine   │  │   LLM Service        │  │  │
-│  │  │   (FastAPI)  │  │  (Celery Workers)  │  │  (Model Serving)     │  │  │
-│  │  │              │  │                    │  │                      │  │  │
-│  │  │ • REST API   │  │ • AST Parsing      │  │ • Code Generation    │  │  │
-│  │  │ • WebSocket  │  │ • Security Scan    │  │ • Vulnerability Fix  │  │  │
-│  │  │ • Auth       │  │ • Performance      │  │ • Explanation        │  │  │
-│  │  │ • Rate Limit │  │ • Taint Analysis   │  │ • Refactoring        │  │  │
-│  │  └──────────────┘  └────────────────────┘  └──────────────────────┘  │  │
-│  │                                                                    │  │
-│  │  ┌──────────────────────┐  ┌────────────────────────────────────┐  │  │
-│  │  │  Knowledge Service   │  │     Training Pipeline              │  │  │
-│  │  │                      │  │                                    │  │  │
-│  │  │ • Graph DB (Neo4j)   │  │ • SFT (Supervised Fine-Tuning)   │  │  │
-│  │  │ • Vector DB (Weaviate│  │ • RLHF (Reinforcement Learning)  │  │  │
-│  │  │ • Code Indexing      │  │ • Dataset Preparation            │  │  │
-│  │  │ • Similarity Search  │  │ • Model Evaluation               │  │  │
-│  │  └──────────────────────┘  └────────────────────────────────────┘  │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                                    │                                      │
-│  ┌─────────────────────────────────┼─────────────────────────────────────┐│
-│  │                    Data & Messaging Layer                             ││
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐  ││
-│  │  │PostgreSQL│ │  Redis   │ │  Neo4j   │ │ Weaviate │ │  RabbitMQ  │  ││
-│  │  │(Metadata)│ │ (Cache)  │ │(Graph DB)│ │(Vectors) │ │  (Queue)   │  ││
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────────┘  ││
-│  └───────────────────────────────────────────────────────────────────────┘│
-│                                                                           │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │                      Observability Stack                             │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │  │
-│  │  │  Prometheus  │  │   Grafana    │  │         Jaeger           │  │  │
-│  │  │  (Metrics)   │  │(Dashboards)  │  │    (Distributed Tracing) │  │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────────────────┘  │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+---
 
-## Features
+## 🌟 Highlights
 
-### Security Analysis
-- **Vulnerability Detection**: Identify security flaws using pattern matching and AI-powered analysis
-- **Taint Analysis**: Track data flow from sources to sinks to detect injection vulnerabilities
-- **OWASP Coverage**: Comprehensive coverage of OWASP Top 10 vulnerabilities
-- **SAST Integration**: Static Application Security Testing with detailed remediation guidance
+- **Security Analysis (SAST + AI)**
+- **Performance & Complexity Metrics**
+- **Semantic Code Search + Knowledge Graph**
+- **Model Serving + Prompt Orchestration**
+- **Modular microservices (FastAPI, Celery, LLM, Vector DB)**
 
-### Performance Analysis
-- **Code Complexity**: Cyclomatic and cognitive complexity metrics
-- **Hot Path Detection**: Identify performance bottlenecks
-- **Resource Usage**: Memory and CPU usage predictions
-- **Optimization Suggestions**: AI-powered performance improvement recommendations
+---
 
-### Code Quality
-- **AST Parsing**: Deep code understanding using abstract syntax trees
-- **Knowledge Graph**: Code relationships and dependencies visualization
-- **Semantic Search**: Find similar code patterns across repositories
-- **Smart Refactoring**: AI-assisted code restructuring suggestions
+## 🚀 Quick Start (Local Dev)
 
-## Quick Start
-
-### Prerequisites
-- Docker 24.0+
+### 1) Prerequisites
+- Docker 24+
 - Docker Compose 2.20+
-- 16GB+ RAM (32GB recommended for LLM)
-- 50GB+ free disk space
+- 16GB RAM (32GB recommended for LLM workloads)
+- 50GB free disk space
 
-### Installation
-
-1. **Clone the repository**
+### 2) Setup
 ```bash
 git clone https://github.com/your-org/codesage-platform.git
 cd codesage-platform
-```
-
-2. **Set up environment variables**
-```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Update .env as needed (API keys, ports, etc.)
 ```
 
-3. **Run guided setup**
+### 3) Run the stack
 ```bash
-bash scripts/setup.sh
+make up
 ```
 
-4. **Verify installation**
+### 4) Validate services
 ```bash
 make check-services
 ```
 
-### Accessing Services
+---
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| API Gateway | http://localhost:8000 | Main REST API |
-| API Docs | http://localhost:8000/docs | Swagger/OpenAPI documentation |
-| Web Frontend | http://localhost:5173 | Browser client for submitting analysis jobs |
+## 🔌 Key Endpoints
+
+| Service | URL | Notes |
+|--------|-----|-------|
+| API | http://localhost:8000 | Main REST API |
+| OpenAPI | http://localhost:8000/docs | Swagger UI |
+| Web UI | http://localhost:5173 | Demo frontend |
+| LLM Service | http://localhost:8001 | Model inference |
+| Knowledge Service | http://localhost:8002 | Graph + vector search |
+
+---
+
+## 🧪 Analyze a Repo (Example)
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@codesage.local","password":"password123"}' | jq -r .access_token)
+
+REPO_ID=$(curl -s -X POST http://localhost:8000/api/v1/repositories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{"url":"https://github.com/example/repo","branch":"main"}' | jq -r .id)
+
+curl -X POST http://localhost:8000/api/v1/repositories/${REPO_ID}/analyze \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{"analysis_types": ["security", "performance", "quality"]}'
+```
+
+---
+
+## 🧱 Project Layout
+
+```
+codesage-platform/
+├── services/        # Microservices (api, analysis, llm, knowledge)
+├── shared/          # Shared models & utilities
+├── training/        # Model training pipelines
+├── clients/         # Web + VS Code extension
+├── k8s/             # Kubernetes manifests
+├── monitoring/      # Prometheus/Grafana/Jaeger configs
+└── tests/           # Unit/integration/end-to-end tests
+```
+
+---
+
+## ✅ Development Workflow
+
+### Tests
+```bash
+make test
+make test-unit
+make test-integration
+```
+
+### Formatting & Linting
+```bash
+make format
+make lint
+```
+
+### Start local dev stack
+```bash
+make up
+```
+
+---
+
+## 🧩 Deployment
+
+### Docker Compose (Dev)
+```bash
+make up
+```
+
+### Kubernetes (Prod)
+```bash
+make k8s-deploy
+```
+
+---
+
+## 📌 Contributing
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/xxx`)
+3. Commit changes (`git commit -m "..."`)
+4. Push and open a PR
+
+---
+
+## 📖 License
+Apache 2.0 — see [LICENSE](LICENSE)
+
+---
+
+## 💬 Support
+- Docs: https://docs.codesage.io
+- Issues: https://github.com/your-org/codesage-platform/issues
+- Discussions: https://github.com/your-org/codesage-platform/discussions
 | LLM Service | http://localhost:8001 | Model serving endpoint |
 | Knowledge Service | http://localhost:8002 | Graph/vector search |
 | Grafana | http://localhost:3000 | Metrics dashboards |
