@@ -17,14 +17,7 @@ A modular, AI-powered code analysis platform that combines security scanning, pe
 
 ---
 
-##  Documentation
-
-- Architecture overview: [`docs/architecture.md`](docs/architecture.md)
-- Onboarding guide: [`docs/onboarding.md`](docs/onboarding.md)
-
----
-
-## Quick Start (Local Dev)
+##  Quick Start (Local Dev)
 
 ### 1) Prerequisites
 - Docker 24+
@@ -64,7 +57,7 @@ make check-services
 
 ---
 
-## Analyze a Repo (Example)
+##  Analyze a Repo (Example)
 
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
@@ -84,7 +77,7 @@ curl -X POST http://localhost:8000/api/v1/repositories/${REPO_ID}/analyze \
 
 ---
 
-## Project Layout
+##  Project Layout
 
 ```
 codesage-platform/
@@ -100,22 +93,6 @@ codesage-platform/
 ---
 
 ##  Development Workflow
-
-### Continuous Integration
-- GitHub Actions runs on push/PR to `main` (lint, format checks, unit + integration tests, security scanning).
-- Dependabot is configured to keep dependencies up to date.
-
-### Senior‑Ready Checklist
-- [ ] CI runs on PRs (lint + tests)
-- [ ] Dependencies are pinned and scanned for vulnerabilities
-- [ ] Integration tests cover core API flows
-- [ ] Static typing (mypy) + linting (ruff/flake8) enforced
-- [ ] Observability (Prometheus, Grafana, tracing) enabled
-- [ ] Secrets management and config validation in place
-- [ ] Health checks + graceful shutdown handled
-- [ ] Docs + onboarding guides kept up to date
-- [ ] Production deployment manifests (K8s/Helm) available
-- [ ] Monitoring/alerts for key SLAs (error rate, latency)
 
 ### Tests
 ```bash
@@ -198,7 +175,7 @@ curl -X POST http://localhost:8000/api/v1/repositories/${REPO_ID}/analyze \
 
 ### Web Frontend
 
-The repo includes a minimal browser frontend in `clients/web` with a built-in login flow (`/api/v1/auth/login`) and repository analysis trigger.
+The repo includes a minimal browser frontend in `clients/web` that can submit repository analysis requests to the API.
 
 ```bash
 # Run only the frontend (API must already be running)
@@ -208,16 +185,11 @@ make up
 # Open http://localhost:5173
 ```
 
-### Web Frontend
+#### Render hosting notes
 
-The repo includes a minimal browser frontend in `clients/web` that can submit repository analysis requests to the API.
+When the frontend is deployed on Render, set the **API URL** field to your backend service URL (for example `https://codesage-api.onrender.com`) and click **Save**. The value is stored in `localStorage` for later visits.
 
-```bash
-# Run only the frontend (API must already be running)
-docker-compose up -d web
-
-# Open http://localhost:5173
-```
+You can also prefill the API URL by adding `?api=https://your-api.onrender.com` to the frontend URL.
 
 ### VSCode Extension
 

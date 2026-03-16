@@ -63,11 +63,16 @@
         </div>
       </section>
 
-      <section id="try" class="try">
-        <div class="try__intro">
-          <h2>Try it in seconds</h2>
-          <p>Point CodeSage at a public repo and instantly receive analysis results.</p>
+      <form id="analyze-form" class="card">
+        <label for="api-url">API URL</label>
+        <div class="api-row">
+          <input id="api-url" type="url" placeholder="https://your-api.onrender.com" required />
+          <button type="button" id="save-api-url" class="secondary">Save</button>
         </div>
+        <p id="api-status" class="api-status">Using API:</p>
+
+        <label for="repo-url">Repository URL</label>
+        <input id="repo-url" type="url" placeholder="https://github.com/example/repo" required />
 
         <div class="try__layout">
           <form id="analyze-form" class="card form">

@@ -1,10 +1,76 @@
-const API_URL = window.CODESAGE_API_URL || "http://localhost:8000";
+const API_URL_STORAGE_KEY = "codesage.apiUrl";
+
+const normalizeApiUrl = (value) => (value || "").trim().replace(/\/$/, "");
+
+const detectDefaultApiUrl = () => {
+  const fromWindow = normalizeApiUrl(window.CODESAGE_API_URL);
+  if (fromWindow) {
+    return fromWindow;
+  }
+
+  const fromQuery = normalizeApiUrl(new URLSearchParams(window.location.search).get("api"));
+  if (fromQuery) {
+    return fromQuery;
+  }
+
+  const fromStorage = normalizeApiUrl(window.localStorage.getItem(API_URL_STORAGE_KEY));
+  if (fromStorage) {
+    return fromStorage;
+  }
+
+  if (window.location.hostname.includes("onrender.com")) {
+    return `${window.location.protocol}//${window.location.hostname.replace(/-web(?=\.)/, "-api")}`;
+  }
+
+  return "http://localhost:8000";
+};
+
+let apiUrl = detectDefaultApiUrl();
 
 const form = document.getElementById("analyze-form");
 const output = document.getElementById("output");
+const apiUrlInput = document.getElementById("api-url");
+const saveApiUrlButton = document.getElementById("save-api-url");
+const apiStatus = document.getElementById("api-status");
+
+const setApiStatus = (message) => {
+  apiStatus.textContent = message;
+};
+
+const setApiUrl = (nextApiUrl, persist = false) => {
+  const normalized = normalizeApiUrl(nextApiUrl);
+  if (!normalized) {
+    setApiStatus("API URL cannot be empty.");
+    return false;
+  }
+
+  apiUrl = normalized;
+  apiUrlInput.value = apiUrl;
+
+  if (persist) {
+    window.localStorage.setItem(API_URL_STORAGE_KEY, apiUrl);
+  }
+
+  setApiStatus(`Using API: ${apiUrl}`);
+  return true;
+};
+
+setApiUrl(apiUrl);
+
+saveApiUrlButton.addEventListener("click", () => {
+  const didSet = setApiUrl(apiUrlInput.value, true);
+  if (didSet) {
+    output.textContent = "Saved API URL. Submit the form to run analysis.";
+  }
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  const didSet = setApiUrl(apiUrlInput.value, true);
+  if (!didSet) {
+    return;
+  }
 
   const url = document.getElementById("repo-url").value;
   const branch = document.getElementById("branch").value;
@@ -12,8 +78,7 @@ form.addEventListener("submit", async (event) => {
   output.textContent = "Creating repository and submitting analysis request...";
 
   try {
-    // Step 1: Register repository
-    const createRepoRes = await fetch(`${API_URL}/api/v1/repositories`, {
+    const createRepoRes = await fetch(`${apiUrl}/api/v1/repositories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,8 +96,7 @@ form.addEventListener("submit", async (event) => {
       return;
     }
 
-    // Step 2: Trigger analysis for the new repository
-    const analyzeRes = await fetch(`${API_URL}/api/v1/repositories/${createRepoPayload.id}/analyze`, {
+    const analyzeRes = await fetch(`${apiUrl}/api/v1/repositories/${createRepoPayload.id}/analyze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,6 +115,6 @@ form.addEventListener("submit", async (event) => {
 
     output.textContent = JSON.stringify({ repository: createRepoPayload, analysis: analyzePayload }, null, 2);
   } catch (error) {
-    output.textContent = `Unable to reach API at ${API_URL}.\n\n${error}`;
+    output.textContent = `Unable to reach API at ${apiUrl}.\n\n${error}`;
   }
 });
