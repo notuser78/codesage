@@ -94,6 +94,18 @@ codesage-platform/
 
 ## ✅ Development Workflow
 
+### Senior‑Ready Checklist
+- [ ] CI runs on PRs (lint + tests)
+- [ ] Dependencies are pinned and scanned for vulnerabilities
+- [ ] Integration tests cover core API flows
+- [ ] Static typing (mypy) + linting (ruff/flake8) enforced
+- [ ] Observability (Prometheus, Grafana, tracing) enabled
+- [ ] Secrets management and config validation in place
+- [ ] Health checks + graceful shutdown handled
+- [ ] Docs + onboarding guides kept up to date
+- [ ] Production deployment manifests (K8s/Helm) available
+- [ ] Monitoring/alerts for key SLAs (error rate, latency)
+
 ### Tests
 ```bash
 make test
