@@ -54,6 +54,27 @@ button {
   cursor: pointer;
 }
 
+.api-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.secondary {
+  width: auto;
+  margin-top: 0;
+  padding: 0.6rem 1rem;
+  background: #334155;
+  color: var(--text);
+}
+
+.api-status {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .output {
   white-space: pre-wrap;
   min-height: 130px;
