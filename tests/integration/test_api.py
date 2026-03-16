@@ -3,16 +3,24 @@ Integration tests for API Gateway
 """
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
 
 
 class TestAPI:
     """Test API endpoints"""
     
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def client(self):
-        from api.main import app
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        from services.api import main as api_main
+        from services.api.middleware.auth import create_access_token
+
+        token = create_access_token("test-user", "test@example.com")
+        async with AsyncClient(
+            app=api_main.app,
+            base_url="http://test",
+            headers={"Authorization": f"Bearer {token}"},
+        ) as client:
             yield client
     
     @pytest.mark.asyncio

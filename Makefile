@@ -68,16 +68,16 @@ makemigrations:
 
 # Testing
 test:
-	PYTHONPATH=. pytest tests/ -v --cov=services --cov-report=html --cov-report=term
+	PYTHONPATH=.:services/api:services/analysis:services/llm:services/knowledge pytest tests/ -v --cov=services --cov-report=html --cov-report=term
 
 test-unit: dev-setup
-	PYTHONPATH=. pytest tests/unit/ -v
+	PYTHONPATH=.:services/api:services/analysis:services/llm:services/knowledge pytest tests/unit/ -v
 
 test-integration: dev-setup
-	PYTHONPATH=. pytest tests/integration/ -v
+	PYTHONPATH=.:services/api:services/analysis:services/llm:services/knowledge pytest tests/integration/ -v
 
 test-e2e:
-	PYTHONPATH=. pytest tests/e2e/ -v
+	PYTHONPATH=.:services/api:services/analysis:services/llm:services/knowledge pytest tests/e2e/ -v
 
 # Code Quality
 lint:

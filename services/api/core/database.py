@@ -6,8 +6,8 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
-import aioredis
 import structlog
+import redis.asyncio as redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -34,7 +34,7 @@ AsyncSessionLocal = sessionmaker(
 )
 
 # Redis connection pool
-redis_pool: Optional[aioredis.Redis] = None
+redis_pool: Optional[redis.Redis] = None
 
 
 async def init_db():
@@ -47,7 +47,7 @@ async def init_db():
     logger.info("Database connection established")
 
     # Initialize Redis
-    redis_pool = aioredis.from_url(
+    redis_pool = redis.from_url(
         settings.REDIS_URL,
         max_connections=settings.REDIS_POOL_SIZE,
         decode_responses=True,
@@ -90,7 +90,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-async def get_redis() -> aioredis.Redis:
+async def get_redis() -> redis.Redis:
     """Get Redis connection"""
     if redis_pool is None:
         raise RuntimeError("Redis not initialized")
