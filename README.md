@@ -7,7 +7,7 @@ A modular, AI-powered code analysis platform that combines security scanning, pe
 
 ---
 
-## 🌟 Highlights
+##  Highlights
 
 - **Security Analysis (SAST + AI)**
 - **Performance & Complexity Metrics**
@@ -17,14 +17,14 @@ A modular, AI-powered code analysis platform that combines security scanning, pe
 
 ---
 
-## � Documentation
+##  Documentation
 
 - Architecture overview: [`docs/architecture.md`](docs/architecture.md)
 - Onboarding guide: [`docs/onboarding.md`](docs/onboarding.md)
 
 ---
 
-## �🚀 Quick Start (Local Dev)
+## Quick Start (Local Dev)
 
 ### 1) Prerequisites
 - Docker 24+
@@ -52,7 +52,7 @@ make check-services
 
 ---
 
-## 🔌 Key Endpoints
+##  Key Endpoints
 
 | Service | URL | Notes |
 |--------|-----|-------|
@@ -64,7 +64,7 @@ make check-services
 
 ---
 
-## 🧪 Analyze a Repo (Example)
+## Analyze a Repo (Example)
 
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
@@ -84,7 +84,7 @@ curl -X POST http://localhost:8000/api/v1/repositories/${REPO_ID}/analyze \
 
 ---
 
-## 🧱 Project Layout
+## Project Layout
 
 ```
 codesage-platform/
@@ -99,7 +99,7 @@ codesage-platform/
 
 ---
 
-## ✅ Development Workflow
+##  Development Workflow
 
 ### Continuous Integration
 - GitHub Actions runs on push/PR to `main` (lint, format checks, unit + integration tests, security scanning).
@@ -137,7 +137,7 @@ make up
 
 ---
 
-## 🧩 Deployment
+##  Deployment
 
 ### Docker Compose (Dev)
 ```bash
@@ -151,7 +151,7 @@ make k8s-deploy
 
 ---
 
-## 📌 Contributing
+##  Contributing
 1. Fork the repo
 2. Create a feature branch (`git checkout -b feature/xxx`)
 3. Commit changes (`git commit -m "..."`)
@@ -159,12 +159,12 @@ make k8s-deploy
 
 ---
 
-## 📖 License
+##  License
 Apache 2.0 — see [LICENSE](LICENSE)
 
 ---
 
-## 💬 Support
+##  Support
 - Docs: https://docs.codesage.io
 - Issues: https://github.com/your-org/codesage-platform/issues
 - Discussions: https://github.com/your-org/codesage-platform/discussions
