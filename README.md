@@ -17,7 +17,14 @@ A modular, AI-powered code analysis platform that combines security scanning, pe
 
 ---
 
-## 🚀 Quick Start (Local Dev)
+## � Documentation
+
+- Architecture overview: [`docs/architecture.md`](docs/architecture.md)
+- Onboarding guide: [`docs/onboarding.md`](docs/onboarding.md)
+
+---
+
+## �🚀 Quick Start (Local Dev)
 
 ### 1) Prerequisites
 - Docker 24+
@@ -93,6 +100,10 @@ codesage-platform/
 ---
 
 ## ✅ Development Workflow
+
+### Continuous Integration
+- GitHub Actions runs on push/PR to `main` (lint, format checks, unit + integration tests, security scanning).
+- Dependabot is configured to keep dependencies up to date.
 
 ### Senior‑Ready Checklist
 - [ ] CI runs on PRs (lint + tests)
