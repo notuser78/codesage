@@ -17,6 +17,15 @@ A modular, AI-powered code analysis platform that combines security scanning, pe
 
 ---
 
+##  Tech Stack
+
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy, Celery
+- **Data & Messaging:** PostgreSQL, Redis, RabbitMQ
+- **Knowledge & Search:** Neo4j, Weaviate
+- **Frontend & Clients:** Vanilla JavaScript web client, VS Code extension (TypeScript)
+- **Infra & Gateway:** Docker, Docker Compose, Kubernetes, Kong
+- **Observability:** Prometheus, Grafana, Jaeger, OpenTelemetry
+
 ##  Quick Start (Local Dev)
 
 ### 1) Prerequisites
