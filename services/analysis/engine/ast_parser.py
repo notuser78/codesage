@@ -106,7 +106,8 @@ class ASTParser:
                     self.languages[lang_name] = language
 
                     parser = Parser()
-                    parser.set_language(language)
+                    # Newer tree-sitter bindings use an attribute setter for language
+                    parser.language = language
                     self.parsers[lang_name] = parser
 
                     logger.debug(f"Loaded {lang_name} parser")

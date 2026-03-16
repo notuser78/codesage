@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from middleware.auth import PermissionChecker
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -118,6 +119,7 @@ mock_findings = [
 async def analyze_code(
     request: AnalysisRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Analyze a code snippet"""
     import uuid
@@ -174,6 +176,7 @@ async def analyze_code(
 async def analyze_batch(
     request: BatchAnalysisRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Analyze multiple code snippets"""
     import uuid
@@ -211,6 +214,7 @@ async def analyze_batch(
 async def get_analysis_result(
     analysis_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Get analysis results by ID"""
     # This would fetch from database in production
@@ -228,6 +232,7 @@ async def get_analysis_findings(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Get findings for an analysis with filtering"""
     # Mock findings
@@ -255,6 +260,7 @@ async def get_analysis_findings(
 async def regenerate_analysis(
     analysis_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Regenerate analysis with updated rules/models"""
     logger.info("Regenerating analysis", analysis_id=str(analysis_id))
@@ -270,6 +276,7 @@ async def regenerate_analysis(
 async def list_analysis_rules(
     category: Optional[str] = None,
     language: Optional[str] = None,
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """List available analysis rules"""
     rules = [
@@ -316,7 +323,9 @@ async def list_analysis_rules(
 
 
 @router.get("/languages")
-async def supported_languages():
+async def supported_languages(
+    current_user: dict = Depends(PermissionChecker(["user"])),
+):
     """Get list of supported programming languages"""
     return {
         "languages": [

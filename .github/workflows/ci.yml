@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test & Lint
+    name: Test, Lint & Security
     runs-on: ubuntu-latest
 
     steps:
@@ -36,13 +36,22 @@ jobs:
           pip install -r services/llm/requirements.txt
           pip install -r services/knowledge/requirements.txt
           pip install -r training/requirements.txt
-          pip install pytest pytest-cov flake8 pylint black isort
+          pip install pytest pytest-cov flake8 pylint black isort bandit safety
+
+      - name: Format check
+        run: make format-check
+
+      - name: Run lint
+        run: make lint
 
       - name: Run unit tests
         run: make test-unit
 
-      - name: Run lint
-        run: make lint
+      - name: Run integration tests
+        run: make test-integration
+
+      - name: Run security scan
+        run: make security-scan
 
       - name: Generate coverage report
         run: |

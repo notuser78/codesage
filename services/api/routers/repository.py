@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from middleware.auth import PermissionChecker
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -65,6 +66,7 @@ async def create_repository(
     repo: RepositoryCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Register a new repository for analysis"""
     import uuid
@@ -107,6 +109,7 @@ async def list_repositories(
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """List all registered repositories"""
     items = list(repositories.values())
@@ -131,6 +134,7 @@ async def list_repositories(
 async def get_repository(
     repo_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Get repository details"""
     repo = repositories.get(str(repo_id))
@@ -148,6 +152,7 @@ async def analyze_repository(
     request: AnalysisRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Submit a repository for analysis"""
     repo = repositories.get(str(repo_id))
@@ -179,6 +184,7 @@ async def analyze_repository(
 async def delete_repository(
     repo_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Delete a repository"""
     if str(repo_id) not in repositories:
@@ -197,6 +203,7 @@ async def delete_repository(
 async def get_analysis_status(
     repo_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(PermissionChecker(["user"])),
 ):
     """Get analysis status for a repository"""
     repo = repositories.get(str(repo_id))
