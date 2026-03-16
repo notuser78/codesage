@@ -1,4 +1,11 @@
-COMPOSE ?= $(shell if command -v docker-compose >/dev/null 2>&1; then echo docker-compose; elif command -v docker >/dev/null 2>&1; then echo "docker compose"; else echo docker-compose; fi)
+COMPOSE ?= $(shell if command -v docker-compose >/dev/null 2>&1; then echo docker-compose; elif command -v docker >/dev/null 2>&1; then echo "docker compose"; else echo ""; fi)
+
+define require_compose
+	@if [ -z "$(COMPOSE)" ]; then \
+		echo "Error: Docker Compose is not available. Install Docker Desktop or docker-compose, then retry."; \
+		exit 127; \
+	fi
+endef
 
 .PHONY: help build up down logs shell test lint format clean deploy k8s-deploy train benchmark
 
@@ -26,44 +33,57 @@ help:
 
 # Docker Compose Commands
 build:
+	$(require_compose)
 	$(COMPOSE) build
 
 up:
+	$(require_compose)
 	$(COMPOSE) up -d
 
 down:
+	$(require_compose)
 	$(COMPOSE) down
 
 logs:
+	$(require_compose)
 	$(COMPOSE) logs -f
 
 logs-api:
+	$(require_compose)
 	$(COMPOSE) logs -f api
 
 logs-worker:
+	$(require_compose)
 	$(COMPOSE) logs -f worker
 
 logs-llm:
+	$(require_compose)
 	$(COMPOSE) logs -f llm
 
 # Shell Access
 shell-api:
+	$(require_compose)
 	$(COMPOSE) exec api /bin/sh
 
 shell-worker:
+	$(require_compose)
 	$(COMPOSE) exec worker /bin/sh
 
 shell-llm:
+	$(require_compose)
 	$(COMPOSE) exec llm /bin/sh
 
 shell-knowledge:
+	$(require_compose)
 	$(COMPOSE) exec knowledge /bin/sh
 
 # Database
 migrate:
+	$(require_compose)
 	$(COMPOSE) exec api alembic upgrade head
 
 makemigrations:
+	$(require_compose)
 	$(COMPOSE) exec api alembic revision --autogenerate -m "$(message)"
 
 # Testing
@@ -99,6 +119,7 @@ security-scan:
 
 # Cleaning
 clean:
+	$(require_compose)
 	$(COMPOSE) down -v --remove-orphans
 	docker system prune -f
 	docker volume prune -f
@@ -167,9 +188,11 @@ check-services:
 
 # Data Management
 backup-db:
+	$(require_compose)
 	$(COMPOSE) exec postgres pg_dump -U codesage codesage > backup_$(shell date +%Y%m%d_%H%M%S).sql
 
 restore-db:
+	$(require_compose)
 	$(COMPOSE) exec -T postgres psql -U codesage codesage < $(file)
 
 # Utilities
