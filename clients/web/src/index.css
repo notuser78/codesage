@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-primary: #E2E8F0;
+  --color-brand-secondary: #94A3B8;
+  --color-bg-dark: #020203;
+  --color-bg-card: rgba(10, 10, 12, 0.4);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-dark text-slate-400 font-sans selection:bg-white/20 selection:text-white overflow-x-hidden transition-colors duration-500;
+    background-color: #000;
+  }
+
+  body.light {
+    @apply bg-slate-50 text-slate-600;
+    background-color: #f8fafc;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display font-bold text-white tracking-tight transition-colors duration-500;
+  }
+
+  body.light h1, body.light h2, body.light h3, body.light h4 {
+    @apply text-slate-900;
+  }
+}
+
+.app-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2400');
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.15) saturate(0.6);
+  transition: filter 0.5s ease;
+}
+
+body.light .app-background {
+  filter: brightness(0.9) saturate(0.4) opacity(0.1);
+}
+
+.app-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.9) 100%);
+  transition: opacity 0.5s ease;
+}
+
+body.light .app-overlay {
+  opacity: 0.2;
+}
+
+.liquid-glass {
+  @apply backdrop-blur-3xl border border-white/5 shadow-[0_8px_64px_0_rgba(0,0,0,0.6)] transition-all duration-500;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+}
+
+body.light .liquid-glass {
+  @apply bg-white/60 border-slate-200 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)];
+  background: white;
+}
+
+.metallic-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-200 to-slate-500 transition-all duration-500;
+}
+
+body.light .metallic-text {
+  @apply text-slate-900 bg-none;
+}
+
+.btn-primary {
+  @apply px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-slate-200 transition-all active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)];
+}
+
+body.light .btn-primary {
+  @apply bg-slate-900 text-white hover:bg-slate-800 shadow-none;
+}
+
+.btn-secondary {
+  @apply px-8 py-4 bg-white/5 text-white font-semibold rounded-full border border-white/10 hover:bg-white/10 transition-all active:scale-95 backdrop-blur-md;
+}
+
+body.light .btn-secondary {
+  @apply bg-slate-100 text-slate-900 border-slate-200 hover:bg-slate-200;
+}
+
+.input-field {
+  @apply w-full px-6 py-4 bg-black/60 border border-white/5 rounded-2xl focus:outline-none focus:border-white/20 transition-all text-white placeholder:text-slate-600 backdrop-blur-md;
+}
+
+body.light .input-field {
+  @apply bg-white border-slate-200 text-slate-900 placeholder:text-slate-400;
+}
+
+.nav-link {
+  @apply text-sm font-medium text-slate-400 hover:text-white transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all hover:after:w-full;
+}
+
+body.light .nav-link {
+  @apply text-slate-500 hover:text-slate-900 after:bg-slate-900;
+}
+
+.card-hover {
+  @apply transition-all duration-500 hover:border-white/20 hover:bg-white/[0.04] hover:-translate-y-1;
+}
+
+body.light .card-hover {
+  @apply hover:border-slate-300 hover:bg-slate-50;
+}
+
+/* IDE Screenshot Styles */
+.ide-screenshot {
+  @apply relative inline-block p-1 bg-[#1e1e1e] rounded-lg shadow-2xl border border-white/10 overflow-hidden font-mono text-left;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.ide-header {
+  @apply flex items-center gap-1.5 px-3 py-2 bg-[#252526] border-b border-white/5;
+}
+
+.ide-dot {
+  @apply w-2.5 h-2.5 rounded-full;
+}
+
+.ide-content {
+  @apply p-6 bg-[#1e1e1e] leading-relaxed;
+}
+
+.syntax-keyword { color: #569cd6; }
+.syntax-string { color: #ce9178; }
+.syntax-comment { color: #6a9955; font-style: italic; }
+.syntax-function { color: #dcdcaa; }
+.syntax-variable { color: #9cdcfe; }
+.syntax-bracket { color: #ffd700; }

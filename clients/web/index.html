@@ -3,113 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeSage — AI-powered code analysis</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>My Google AI Studio App</title>
   </head>
-
   <body>
-    <header class="nav">
-      <div class="nav__brand">
-        <div class="logo" aria-hidden="true">🧠</div>
-        <div class="brand">
-          <div class="brand__name">CodeSage</div>
-          <div class="brand__tag">Smart code analysis</div>
-        </div>
-      </div>
-      <nav class="nav__links">
-        <a href="#features">Features</a>
-        <a href="#try">Try</a>
-        <a href="#docs">Docs</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="hero">
-        <div class="hero__content">
-          <h1>Understand code faster. Ship safer.</h1>
-          <p>CodeSage runs deep analysis across security, performance, and code quality — powered by AI and built for teams.</p>
-          <div class="hero__cta">
-            <a class="btn btn--primary" href="#try">Try it now</a>
-            <a class="btn btn--secondary" href="#features">Explore features</a>
-          </div>
-        </div>
-        <div class="hero__visual" aria-hidden="true">
-          <div class="visual__card">
-            <h3>Code analysis report</h3>
-            <pre class="visual__output">{ "issues": [ { "type": "security", "severity": "high" } ] }</pre>
-          </div>
-        </div>
-      </section>
-
-      <section id="features" class="features">
-        <h2>What CodeSage brings to your repo</h2>
-        <div class="features__grid">
-          <div class="feature">
-            <h3>Security insights</h3>
-            <p>Detect vulnerabilities, secrets, and supply-chain risks automatically.</p>
-          </div>
-          <div class="feature">
-            <h3>Performance profiling</h3>
-            <p>Point out bottlenecks and slow code paths before they reach production.</p>
-          </div>
-          <div class="feature">
-            <h3>Code quality scoring</h3>
-            <p>Track maintainability, complexity, and style issues across your codebase.</p>
-          </div>
-          <div class="feature">
-            <h3>Knowledge graph</h3>
-            <p>Build a searchable model of your repo and dependency graph.</p>
-          </div>
-        </div>
-      </section>
-
-      <form id="analyze-form" class="card">
-        <label for="api-url">API URL</label>
-        <div class="api-row">
-          <input id="api-url" type="url" placeholder="https://your-api.onrender.com" required />
-          <button type="button" id="save-api-url" class="secondary">Save</button>
-        </div>
-        <p id="api-status" class="api-status">Using API:</p>
-
-        <label for="repo-url">Repository URL</label>
-        <input id="repo-url" type="url" placeholder="https://github.com/example/repo" required />
-
-        <div class="try__layout">
-          <form id="analyze-form" class="card form">
-            <label for="repo-url">Repository URL</label>
-            <input id="repo-url" type="url" placeholder="https://github.com/example/repo" required />
-
-            <label for="branch">Branch</label>
-            <input id="branch" type="text" value="main" required />
-
-            <button type="submit" class="btn btn--primary">Start analysis</button>
-          </form>
-
-          <pre id="output" class="card output">Results appear here.</pre>
-        </div>
-      </section>
-
-      <section id="docs" class="docs">
-        <h2>Documentation</h2>
-        <p>Get started with the backend API, run the platform locally, and configure AI models.</p>
-        <ul>
-          <li><strong>Backend API:</strong> <code>services/api</code></li>
-          <li><strong>LLM service:</strong> <code>services/llm</code></li>
-          <li><strong>Analysis engine:</strong> <code>services/analysis</code></li>
-          <li><strong>Knowledge graph:</strong> <code>services/knowledge</code></li>
-        </ul>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <div>CodeSage &mdash; AI code analysis for teams</div>
-      <div class="footer__links">
-        <a href="#">GitHub</a>
-        <a href="#">Docs</a>
-        <a href="#">License</a>
-      </div>
-    </footer>
-
-    <script src="./app.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
